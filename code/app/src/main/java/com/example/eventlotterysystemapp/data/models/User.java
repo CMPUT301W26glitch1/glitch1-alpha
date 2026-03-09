@@ -4,12 +4,16 @@ package com.example.eventlotterysystemapp.data.models;
 public class User {
     private String name;
     private String password;
+    private String email;
     private String role;
+    private String lastDeviceId;
 
-    public User(String name, String password, String role) {
+    public User(String name, String password, String email, String role, String lastDeviceId) {
         this.name = name;
         this.password = password;
+        this.email = email;
         this.role = role;
+        this.lastDeviceId = lastDeviceId;
     }
 
     // -----getters and setters-----
@@ -36,5 +40,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getLastDeviceId() {
+        return lastDeviceId;
+    }
+
+    public void setLastDeviceId(String lastDeviceId) {
+        this.lastDeviceId = lastDeviceId;
     }
 }
