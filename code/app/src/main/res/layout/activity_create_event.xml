@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="15sp">
+
+        <TextView
+            android:id="@+id/createEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Event"
+            android:textSize="35sp"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/eventTitle"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Event Title"/>
+
+        <EditText
+            android:id="@+id/eventDescription"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Event Description"/>
+
+        <EditText
+            android:id="@+id/eventTime"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Event Time"/>
+
+        <EditText
+            android:id="@+id/eventPlace"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Event Location"/>
+
+        <EditText
+            android:id="@+id/registrationStart"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Registration Start"/>
+
+        <EditText
+            android:id="@+id/registrationEnd"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Registration End"/>
+
+        <EditText
+            android:id="@+id/listLimit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Waiting List Limit"
+            android:inputType="number"/>
+
+        <EditText
+            android:id="@+id/poster"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Upload Poster"/>
+
+        <Switch
+            android:id="@+id/geoLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Require Geolocation" />
+
+        <Button
+            android:id="@+id/eventButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5sp"
+            android:text="Create Event" />
+
+    </LinearLayout>
+</ScrollView>
