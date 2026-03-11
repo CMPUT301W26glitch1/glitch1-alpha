@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_margin="15sp">
+        android:layout_margin="15dp">
 
         <TextView
             android:id="@+id/createEvent"
@@ -60,24 +60,49 @@
             android:hint="Waiting List Limit"
             android:inputType="number"/>
 
-        <EditText
-            android:id="@+id/poster"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Upload Poster"
+            android:textSize="20sp" />
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="Upload Poster"/>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:id="@+id/eventPoster"
+                android:layout_width="130dp"
+                android:layout_height="120dp"
+                android:background="#DDDDDD"
+                android:scaleType="fitStart"
+                android:src="@android:drawable/ic_menu_gallery" />
+
+            <Button
+                android:id="@+id/selectImageBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Select Image" />
+        </LinearLayout>
 
         <Switch
             android:id="@+id/geoLocation"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:text="Require Geolocation" />
+            android:text="Require Geolocation"
+            android:textSize="20sp"/>
 
         <Button
-            android:id="@+id/eventButton"
+            android:id="@+id/nextBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5sp"
-            android:text="Create Event" />
+            android:text="Next"
+            android:layout_gravity="right"/>
 
     </LinearLayout>
 </ScrollView>
