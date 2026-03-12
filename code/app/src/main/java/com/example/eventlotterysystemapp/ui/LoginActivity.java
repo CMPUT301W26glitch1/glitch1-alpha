@@ -100,7 +100,8 @@ public class LoginActivity extends AppCompatActivity {
                     switch (role != null ? role : "") {
                         case "Admin":
                             // Navigate to AdminDashboardActivity
-                            Toast.makeText(this, "Welcome, Admin!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, AdminDashboardActivity.class));
+                            finish();
                             break;
                         case "Organizer":
                             Intent intent = new Intent(this, OrganizerMainActivity.class);
