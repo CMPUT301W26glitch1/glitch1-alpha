@@ -11,17 +11,38 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EventLotterySystemApp">
+
+        <activity
+            android:name=".ui.AdminDashboardActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminManageEventsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminEventDetailActivity"
+            android:exported="false"/>
+
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-        </activity>
-        <activity android:name=".ui.RegistrationActivity"
+            android:exported="false"/>
+
+        <!-- LoginActivity is now the first screen -->
+        <activity
+            android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- RegistrationActivity reachable from Sign Up button -->
+        <activity
+            android:name=".ui.RegistrationActivity"
+            android:exported="false"/>
+
     </application>
 
 </manifest>
