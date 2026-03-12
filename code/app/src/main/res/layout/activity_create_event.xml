@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="15dp">
+
+        <TextView
+            android:id="@+id/createEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Event"
+            android:textSize="35sp"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/eventTitle"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:inputType="textCapSentences"
+            android:hint="Event Title"/>
+
+        <EditText
+            android:id="@+id/eventDescription"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:inputType="textMultiLine"
+            android:hint="Event Description"/>
+
+        <EditText
+            android:id="@+id/eventCategory"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:inputType="textCapWords"
+            android:hint="Category (e.g., Music, Sports)"/>
+
+        <EditText
+            android:id="@+id/eventTime"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:focusable="false"
+            android:clickable="true"
+            android:hint="Event Time"/>
+
+        <EditText
+            android:id="@+id/eventPlace"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Event Location"/>
+
+        <EditText
+            android:id="@+id/registrationStart"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:focusable="false"
+            android:clickable="true"
+            android:hint="Registration Start"/>
+
+        <EditText
+            android:id="@+id/registrationEnd"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:focusable="false"
+            android:clickable="true"
+            android:hint="Registration End"/>
+
+        <EditText
+            android:id="@+id/listLimit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Waiting List Limit"
+            android:inputType="number"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Upload Poster"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:id="@+id/eventPoster"
+                android:layout_width="130dp"
+                android:layout_height="120dp"
+                android:background="#DDDDDD"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_menu_gallery" />
+
+            <Button
+                android:id="@+id/selectImageBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Select Image" />
+        </LinearLayout>
+
+        <Switch
+            android:id="@+id/geoLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Require Geolocation"
+            android:textSize="20sp"/>
+
+        <Button
+            android:id="@+id/nextBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="Next"
+            android:layout_gravity="end"/>
+
+    </LinearLayout>
+</ScrollView>
