@@ -24,6 +24,9 @@ import com.example.eventlotterysystemapp.data.models.StorageController;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
+/**
+ * Screen for organizer to create an event
+ */
 public class CreateEventActivity extends AppCompatActivity {
     private String organizerEmail;
     private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace;
@@ -40,9 +43,9 @@ public class CreateEventActivity extends AppCompatActivity {
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
                 if (uri != null) {
-                    // User selected an image, set it to your ImageView
+                    // User selected an image, set it to  ImageView
                     eventPoster.setImageURI(uri);
-                    // Store the URI in a variable so you can upload it later
+                    // Store the URI in a variable so it can be uploaded later
                     selectedImageUri = uri;
                 }
             });
@@ -83,6 +86,9 @@ public class CreateEventActivity extends AppCompatActivity {
         nextBtn.setOnClickListener(v -> saveEvent());
     }
 
+    /**
+     * Saves event to firestore database
+     */
     private void saveEvent() {
         String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
@@ -110,7 +116,7 @@ public class CreateEventActivity extends AppCompatActivity {
             if (selectedImageUri != null) {
                 StorageController storageController = new StorageController();
                 storageController.uploadPoster(eventId, selectedImageUri, downloadUrl -> {
-                    // 3. Once uploaded, update the event with the photo URL
+                    // Once uploaded, update the event with the photo URL
                     docRef.update("posterUrl", downloadUrl);
 
                     // Now navigate
@@ -123,6 +129,10 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Moves to the QR Code screen for newly created event
+     * @param eventId Id of created event
+     */
     private void navigateToQR(String eventId) {
         Intent intent = new Intent(this, QRCodeActivity.class);
         intent.putExtra("EVENT_ID", eventId);
@@ -130,7 +140,12 @@ public class CreateEventActivity extends AppCompatActivity {
         finish();
     }
 
-    // Helper to open Date and Time pickers sequentially
+
+    /**
+     * Helper to open Date and Time pickers sequentially
+     * @param editText The text field for the Date/Time
+     * @param callback callback implementation to receive the resulting LocalDateTime object
+     */
     private void setupDateTimePicker(EditText editText, DateTimeCallback callback) {
         editText.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
@@ -144,6 +159,9 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Callback interface to be invoked when a user completes a date and time selection.
+     */
     private interface DateTimeCallback {
         void onDateTimeSelected(LocalDateTime ldt);
     }

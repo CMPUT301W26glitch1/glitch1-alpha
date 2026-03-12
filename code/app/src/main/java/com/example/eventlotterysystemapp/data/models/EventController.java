@@ -6,6 +6,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+/**
+ * Controller objects for events used to add them to firestore database
+ */
 public class EventController {
     private FirebaseFirestore db;
     private CollectionReference eventsRef;

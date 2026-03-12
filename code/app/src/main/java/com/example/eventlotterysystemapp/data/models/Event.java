@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+/**
+ * Event class to store information of an event
+ */
 public class Event {
     private String eventId;
     private String organizerId;

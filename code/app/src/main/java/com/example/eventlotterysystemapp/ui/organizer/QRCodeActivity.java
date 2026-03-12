@@ -12,6 +12,10 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+
+/**
+ * Generates and displays the QR Code for an event
+ */
 public class QRCodeActivity extends AppCompatActivity {
 
     private ImageView imageQR;
@@ -34,6 +38,10 @@ public class QRCodeActivity extends AppCompatActivity {
         returnBtn.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Generates a QR Code for an event
+     * @param text the text to be encoded into the QR Code, i.e: the eventId
+     */
     private void generateQRCode(String text) {
         QRCodeWriter writer = new QRCodeWriter();
         try {

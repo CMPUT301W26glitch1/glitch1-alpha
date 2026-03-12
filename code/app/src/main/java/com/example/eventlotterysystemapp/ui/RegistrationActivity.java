@@ -23,6 +23,9 @@ import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserController;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 
+/**
+ * The Registration screen for users to register a new user account
+ */
 public class RegistrationActivity extends AppCompatActivity {
     Button registerButton, returnButton;
     EditText username;

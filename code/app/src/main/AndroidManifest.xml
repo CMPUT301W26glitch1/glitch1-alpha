@@ -38,6 +38,14 @@
             android:name=".ui.organizer.CreateEventActivity"
             android:exported="false">
         </activity>
+        <activity
+            android:name=".ui.organizer.UpdatePosterActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.EventParticipantsActivity"
+            android:exported="false">
+        </activity>
     </application>
 
 </manifest>

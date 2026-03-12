@@ -13,10 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
+import com.example.eventlotterysystemapp.ui.organizer.EventParticipantsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
+import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
 
 import java.util.List;
 
+/**
+ * Event adapter used for displaying event information as a list in OrganizerMainActivity
+ */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> {
     private Context context;
     private List<Event> events;
@@ -41,13 +46,26 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
 
         Glide.with(context).load(event.getPosterUrl()).into(holder.poster);
 
+        // QR Code Button
         holder.btnQR.setOnClickListener(v -> {
             Intent intent = new Intent(context, QRCodeActivity.class);
             intent.putExtra("EVENT_ID", event.getEventId());
             context.startActivity(intent);
         });
 
+        //Update Poster Button
+        holder.poster.setOnClickListener(v -> {
+            Intent intent = new Intent(context, UpdatePosterActivity.class);
+            intent.putExtra("EVENT_ID", event.getEventId());
+            context.startActivity(intent);
+        });
+
         // Add listener for Participant button similarly...
+        holder.btnParticipants.setOnClickListener(v -> {
+            Intent intent = new Intent(context, EventParticipantsActivity.class);
+            intent.putExtra("EVENT_ID", event.getEventId());
+            context.startActivity(intent);
+        });
     }
 
     @Override
