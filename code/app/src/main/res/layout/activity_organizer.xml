@@ -1,51 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="15sp">
+    android:padding="16dp">
 
     <TextView
-        android:id="@+id/organizerMenu"
+        android:id="@+id/mainTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Organizer Menu"
-        android:textSize="35sp"
+        android:text="My Events"
+        android:textSize="32sp"
         android:textStyle="bold"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="16dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/mainTitle"
+        android:layout_above="@id/btnCreateEvent"
+        android:layout_marginBottom="16dp" />
 
     <Button
-        android:id="@+id/createEventBtn"
+        android:id="@+id/btnCreateEvent"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Create Event"
-        android:layout_marginBottom="5dp"/>
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Create New Event"
+        android:textSize="18sp"
+        android:padding="12dp" />
 
-    <Button
-        android:id="@+id/updatePosterBtn"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Update Poster"
-        android:layout_marginBottom="5dp"/>
-
-    <Button
-        android:id="@+id/WaitingListBtn"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="View Waiting List"
-        android:layout_marginBottom="5dp"/>
-
-    <Button
-        android:id="@+id/MapBtn"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="View Entrant Map"
-        android:layout_marginBottom="5dp"/>
-
-    <Button
-        android:id="@+id/NotificationBtn"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Send Notifications"/>
-
-</LinearLayout>
+</RelativeLayout>

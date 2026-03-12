@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -99,12 +100,14 @@ public class LoginActivity extends AppCompatActivity {
                     switch (role != null ? role : "") {
                         case "Admin":
                             // Navigate to AdminDashboardActivity
-                            startActivity(new Intent(this, AdminDashboardActivity.class));
-                            finish();
+                            Toast.makeText(this, "Welcome, Admin!", Toast.LENGTH_SHORT).show();
                             break;
                         case "Organizer":
-                            // TODO: replace with OrganizerDashboardActivity when built
-                            Toast.makeText(this, "Welcome, Organizer!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, OrganizerMainActivity.class);
+                            // Pass the email as a string extra
+                            intent.putExtra("USER_EMAIL", email);
+                            startActivity(intent);
+                            finish();
                             break;
                         case "Entrant":
                             // TODO: replace with EntrantDashboardActivity when built

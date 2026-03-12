@@ -2,6 +2,7 @@ package com.example.eventlotterysystemapp.ui;
 
 import static com.example.eventlotterysystemapp.ui.UiUtils.showNotification;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
@@ -20,9 +21,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserController;
+import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 
 public class RegistrationActivity extends AppCompatActivity {
-    Button registerButton;
+    Button registerButton, returnButton;
     EditText username;
     EditText password;
     EditText email;
@@ -44,6 +46,7 @@ public class RegistrationActivity extends AppCompatActivity {
         });
 
         registerButton = findViewById(R.id.registerButton);
+        returnButton = findViewById(R.id.returnButton);
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         email = findViewById(R.id.email);
@@ -59,6 +62,14 @@ public class RegistrationActivity extends AppCompatActivity {
                 String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
                 User user = new User(username.getText().toString(), password.getText().toString(), email.getText().toString(), roles.getSelectedItem().toString(), deviceId);
                 usersdb.checkUser(user);
+            }
+        });
+
+        returnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
+                finish();
             }
         });
 

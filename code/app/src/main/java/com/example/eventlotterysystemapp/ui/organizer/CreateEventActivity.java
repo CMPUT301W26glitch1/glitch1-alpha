@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 
 public class CreateEventActivity extends AppCompatActivity {
+    private String organizerEmail;
     private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace;
     private Switch geoSwitch;
     private Button nextBtn;
@@ -50,6 +51,8 @@ public class CreateEventActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+
+        organizerEmail = getIntent().getStringExtra("USER_EMAIL");
 
         eventController = new EventController();
 
@@ -92,8 +95,8 @@ public class CreateEventActivity extends AppCompatActivity {
                 selectedRegStart,
                 selectedRegEnd,
                 geoSwitch.isChecked(),
-                deviceId,
-                null // Poster URL is null here, updated after upload
+                organizerEmail,
+                null
         );
 
         // Save Event to Firestore first

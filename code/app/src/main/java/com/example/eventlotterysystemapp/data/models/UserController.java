@@ -29,7 +29,7 @@ public class UserController {
     }
 
     public void registerUser(User user){
-        usersRef.document()
+        usersRef.document(user.getEmail())
                 .set(user);
         UiUtils.showNotification(context, "Success", "User registered successfully;");
     }
