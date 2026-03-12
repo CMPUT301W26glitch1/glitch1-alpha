@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="Admin Panel"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#1A1A1A"/>
+
+    <!-- Manage Events -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardManageEvents"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_blue"
+                android:src="@android:drawable/ic_menu_agenda"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Manage Events"
+                android:textSize="16sp"
+                android:textColor="#1A1A1A"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Manage Profiles -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardManageProfiles"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_green"
+                android:src="@android:drawable/ic_menu_manage"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Manage Profiles"
+                android:textSize="16sp"
+                android:textColor="#1A1A1A"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Manage Images -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardManageImages"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_purple"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Manage Images"
+                android:textSize="16sp"
+                android:textColor="#1A1A1A"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Manage Organizers -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardManageOrganizers"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_orange"
+                android:src="@android:drawable/ic_menu_myplaces"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Manage Organizers"
+                android:textSize="16sp"
+                android:textColor="#1A1A1A"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Notification Logs -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardNotificationLogs"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_pink"
+                android:src="@android:drawable/ic_dialog_info"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Notification Logs"
+                android:textSize="16sp"
+                android:textColor="#1A1A1A"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:text="Logout"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#E53935"/>
+
+</LinearLayout>
