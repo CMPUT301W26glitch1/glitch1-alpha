@@ -15,12 +15,36 @@
             android:name=".MainActivity"
             android:exported="false">
         </activity>
-        <activity android:name=".ui.RegistrationActivity"
+        <activity android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.RegistrationActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.QRCodeActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.OrganizerMainActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.CreateEventActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.UpdatePosterActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.EventParticipantsActivity"
+            android:exported="false">
         </activity>
     </application>
 

@@ -1,130 +1,103 @@
 package com.example.eventlotterysystemapp.data.models;
 
-import java.sql.Time;
+import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.PropertyName;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
-enum Category{
-    MUSIC,
-    SCIENCE,
-    NATURE,
-    ARTS
-}
-
+/**
+ * Event class to store information of an event
+ */
 public class Event {
+    private String eventId;
+    private String organizerId;
     private String name;
     private String description;
-    private Category category;
+    private String category;
     private String location;
-    private Date date;
-    private Time time;
-    private Date regStartDate;
-    private Time regStartTime;
-    private Date regEndDate;
-    private Time regEndTime;
-    private boolean geolocation;
+    private LocalDateTime dateTime;
+    private LocalDateTime regStart;
+    private LocalDateTime regEnd;
+    private boolean geolocationReq;
+    private String posterUrl;
 
-    public Event(Time regEndTime, Date regEndDate, Time regStartTime, Date regStartDate, Time time, Date date, String location, Category category, String description, String name, boolean geolocation) {
-        this.regEndTime = regEndTime;
-        this.regEndDate = regEndDate;
-        this.regStartTime = regStartTime;
-        this.regStartDate = regStartDate;
-        this.time = time;
-        this.date = date;
-        this.location = location;
-        this.category = category;
-        this.description = description;
+    public Event() {}
+
+    public Event(String name, String description, String category, String location,
+                 LocalDateTime dateTime, LocalDateTime regStart, LocalDateTime regEnd,
+                 boolean geolocationReq, String organizerId, String posterUrl) {
         this.name = name;
-        this.geolocation = geolocation;
-    }
-
-
-    // -----Getters and Setters-----
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
         this.category = category;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
         this.location = location;
+        this.dateTime = dateTime;
+        this.regStart = regStart;
+        this.regEnd = regEnd;
+        this.geolocationReq = geolocationReq;
+        this.organizerId = organizerId;
+        this.posterUrl = posterUrl;
     }
 
-    public Date getDate() {
-        return date;
+    // --- Standard Getters/Setters ---
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public String getEventId() { return eventId; }
+    public void setEventId(String eventId) { this.eventId = eventId; }
+    public String getOrganizerId() { return organizerId; }
+    public void setOrganizerId(String organizerId) { this.organizerId = organizerId; }
+    public boolean isGeolocationReq() { return geolocationReq; }
+    public void setGeolocationReq(boolean geolocationReq) { this.geolocationReq = geolocationReq; }
+    public String getPosterUrl() { return posterUrl; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+
+    // --- LocalDateTime Logic for Firestore ---
+
+    @Exclude
+    public LocalDateTime getDateTime() { return dateTime; }
+    public void updateLocalDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
+
+    @PropertyName("dateTime")
+    public Date getDateTimeAsDate() {
+        return (dateTime == null) ? null : Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    @PropertyName("dateTime")
+    public void setDateTime(Date date) {
+        this.dateTime = (date == null) ? null : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    public Time getTime() {
-        return time;
+    @Exclude
+    public LocalDateTime getRegStart() { return regStart; }
+    public void updateLocalRegStart(LocalDateTime regStart) { this.regStart = regStart; }
+
+    @PropertyName("regStart")
+    public Date getRegStartAsDate() {
+        return (regStart == null) ? null : Date.from(regStart.atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    public void setTime(Time time) {
-        this.time = time;
+    @PropertyName("regStart")
+    public void setRegStart(Date date) {
+        this.regStart = (date == null) ? null : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    public Date getRegStartDate() {
-        return regStartDate;
+    @Exclude
+    public LocalDateTime getRegEnd() { return regEnd; }
+    public void updateLocalRegEnd(LocalDateTime regEnd) { this.regEnd = regEnd; }
+
+    @PropertyName("regEnd")
+    public Date getRegEndAsDate() {
+        return (regEnd == null) ? null : Date.from(regEnd.atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    public void setRegStartDate(Date regStartDate) {
-        this.regStartDate = regStartDate;
-    }
-
-    public Time getRegStartTime() {
-        return regStartTime;
-    }
-
-    public void setRegStartTime(Time regStartTime) {
-        this.regStartTime = regStartTime;
-    }
-
-    public Date getRegEndDate() {
-        return regEndDate;
-    }
-
-    public void setRegEndDate(Date regEndDate) {
-        this.regEndDate = regEndDate;
-    }
-
-    public Time getRegEndTime() {
-        return regEndTime;
-    }
-
-    public void setRegEndTime(Time regEndTime) {
-        this.regEndTime = regEndTime;
-    }
-
-    public boolean isGeolocation() {
-        return geolocation;
-    }
-
-    public void setGeolocation(boolean geolocation) {
-        this.geolocation = geolocation;
+    @PropertyName("regEnd")
+    public void setRegEnd(Date date) {
+        this.regEnd = (date == null) ? null : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }
