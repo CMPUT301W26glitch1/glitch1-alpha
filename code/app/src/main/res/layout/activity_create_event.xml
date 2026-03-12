@@ -77,7 +77,6 @@
                 android:id="@+id/eventPoster"
                 android:layout_width="130dp"
                 android:layout_height="120dp"
-                android:background="#DDDDDD"
                 android:scaleType="fitStart"
                 android:src="@android:drawable/ic_menu_gallery" />
 
