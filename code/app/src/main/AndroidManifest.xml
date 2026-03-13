@@ -11,60 +11,70 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EventLotterySystemApp">
+
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-        </activity>
-        <activity android:name=".ui.LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
         <activity
             android:name=".ui.RegistrationActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.organizer.QRCodeActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.organizer.OrganizerMainActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.organizer.CreateEventActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.organizer.UpdatePosterActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".ui.organizer.EventParticipantsActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
+        <!-- ADMIN ACTIVITIES -->
 
         <activity
             android:name=".ui.AdminDashboardActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".ui.AdminManageEventsActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".ui.AdminEventDetailActivity"
-            android:exported="false"/>
+            android:exported="false" />
+
         <activity
             android:name=".ui.AdminManageProfilesActivity"
-            android:exported="false"/>
+            android:exported="false" />
 
         <activity
             android:name=".ui.AdminProfileDetailActivity"
-            android:exported="false"/>
+            android:exported="false" />
+
+        <!-- NEW USER STORY ACTIVITY -->
+        <activity
+            android:name=".ui.AdminManageOrganizersActivity"
+            android:exported="false" />
 
     </application>
 
