@@ -33,6 +33,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardManageProfiles.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
+        // Clicking Notification Logs launches the notification logs screen
+        cardNotificationLogs.setOnClickListener(v ->
+                startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
+
         // The remaining cards are commented out until those activities are built
         /*
         cardManageImages.setOnClickListener(v ->
@@ -40,14 +44,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         cardManageOrganizers.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageOrganizersActivity.class)));
-
-        cardNotificationLogs.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
         */
 
         // Logout button: navigates back to LoginActivity and clears the entire back stack.
-        // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK makes sure the admin cannot
-        // press the back button to re-enter the dashboard after logging out.
+        // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK ensures the admin cannot
+        // press back to return to the dashboard after logging out.
         Button btnLogout = findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> {
             Intent intent = new Intent(this, LoginActivity.class);

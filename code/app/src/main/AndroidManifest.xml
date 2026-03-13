@@ -32,6 +32,8 @@
             android:name=".ui.RegistrationActivity"
             android:exported="false" />
 
+        <!-- Organizer Activities -->
+
         <activity
             android:name=".ui.organizer.QRCodeActivity"
             android:exported="false" />
@@ -52,6 +54,8 @@
             android:name=".ui.organizer.EventParticipantsActivity"
             android:exported="false" />
 
+        <!-- Admin Activities -->
+
         <activity
             android:name=".ui.AdminDashboardActivity"
             android:exported="false" />
@@ -67,12 +71,15 @@
         <activity
             android:name=".ui.AdminEventDetailActivity"
             android:exported="false"/>
-        <activity
-            android:name=".ui.AdminManageProfilesActivity"
-            android:exported="false"/>
 
         <activity
             android:name=".ui.AdminProfileDetailActivity"
+            android:exported="false"/>
+
+        <!-- Notification Logs (New User Story) -->
+
+        <activity
+            android:name=".ui.AdminNotificationLogsActivity"
             android:exported="false"/>
 
     </application>
