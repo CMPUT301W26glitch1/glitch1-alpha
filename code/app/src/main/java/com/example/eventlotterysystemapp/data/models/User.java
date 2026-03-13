@@ -10,10 +10,6 @@ public class User {
     private String role;
     private String lastDeviceId;
 
-    // Required empty constructor for Firestore
-    public User() {
-    }
-
     public User(String name, String password, String email, String role, String lastDeviceId) {
         this.name = name;
         this.password = password;
@@ -21,6 +17,8 @@ public class User {
         this.role = role;
         this.lastDeviceId = lastDeviceId;
     }
+
+    // -----getters and setters-----
 
     public String getName() {
         return name;
@@ -38,20 +36,20 @@ public class User {
         this.password = password;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getRole() {
         return role;
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getLastDeviceId() {
