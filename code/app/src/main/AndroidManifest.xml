@@ -47,6 +47,8 @@
             android:exported="false">
         </activity>
 
+        <activity android:name=".ui.ProfileActivity"></activity>
+
         <activity
             android:name=".ui.AdminDashboardActivity"
             android:exported="false"/>
