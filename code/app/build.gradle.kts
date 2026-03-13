@@ -48,5 +48,4 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.android.gms:play-services-maps:19.0.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
