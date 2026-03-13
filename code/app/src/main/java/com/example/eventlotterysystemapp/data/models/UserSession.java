@@ -1,6 +1,4 @@
-package com.example.eventlotterysystemapp.ui;
-
-import com.example.eventlotterysystemapp.data.models.User;
+package com.example.eventlotterysystemapp.data.models;
 
 public class UserSession {
 

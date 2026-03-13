@@ -1,7 +1,7 @@
 package com.example.eventlotterysystemapp.ui;
 
 
-import com.example.eventlotterysystemapp.ui.UiUtils;
+import com.example.eventlotterysystemapp.data.models.UserSession;
 
 import android.os.Bundle;
 import android.provider.Settings;

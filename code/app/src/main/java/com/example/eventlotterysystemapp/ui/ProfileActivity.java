@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.User;
+import com.example.eventlotterysystemapp.data.models.UserSession;
 
 public class ProfileActivity extends AppCompatActivity {
     EditText etName, etEmail, etPhone;
