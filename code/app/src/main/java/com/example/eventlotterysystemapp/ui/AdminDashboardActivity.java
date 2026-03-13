@@ -26,7 +26,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         // Clicking Manage Events launches the event list screen
         cardManageEvents.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageEventsActivity.class)));
-/*
+
         cardManageProfiles.setOnClickListener(v ->
             startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
