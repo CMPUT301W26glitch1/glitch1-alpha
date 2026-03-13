@@ -23,23 +23,23 @@ public class AdminDashboardActivity extends AppCompatActivity {
         CardView cardManageOrganizers = findViewById(R.id.cardManageOrganizers);
         CardView cardNotificationLogs = findViewById(R.id.cardNotificationLogs);
 
-        // Clicking Manage Events launches the event list screen
-        /*cardManageEvents.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageEventsActivity.class)));
-
+        // Clicking Manage Profiles launches the profile browsing screen
         cardManageProfiles.setOnClickListener(v ->
-            startActivity(new Intent(this, AdminManageProfilesActivity.class)));
+                startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
         // The remaining cards are commented out until those activities are built
         /*
+        cardManageEvents.setOnClickListener(v ->
+                startActivity(new Intent(this, AdminManageEventsActivity.class)));
+
         cardManageImages.setOnClickListener(v ->
-            startActivity(new Intent(this, AdminManageImagesActivity.class)));
+                startActivity(new Intent(this, AdminManageImagesActivity.class)));
 
         cardManageOrganizers.setOnClickListener(v ->
-            startActivity(new Intent(this, AdminManageOrganizersActivity.class)));
+                startActivity(new Intent(this, AdminManageOrganizersActivity.class)));
 
         cardNotificationLogs.setOnClickListener(v ->
-            startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
+                startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
         */
 
         // Logout button: navigates back to LoginActivity and clears the entire back stack.
