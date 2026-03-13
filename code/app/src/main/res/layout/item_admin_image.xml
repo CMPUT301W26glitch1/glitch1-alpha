@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp"
+    android:background="#FFFFFF">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/textUploader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Uploaded by"
+        android:layout_marginTop="6dp"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btnRemoveImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remove Image"
+        android:layout_marginTop="6dp"/>
+</LinearLayout>

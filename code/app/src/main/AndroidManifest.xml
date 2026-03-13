@@ -1,28 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.eventlotterysystemapp">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
-        android:label="Event Lottery System"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.EventLotterySystemApp">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".ui.RegistrationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.organizer.QRCodeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.organizer.OrganizerMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.organizer.CreateEventActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.organizer.UpdatePosterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.organizer.EventParticipantsActivity"
+            android:exported="false" />
+
+        <!-- Admin Screens -->
+
+        <activity
+            android:name=".ui.AdminDashboardActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminManageEventsActivity"
+            android:exported="false"/>
 
         <activity
             android:name=".ui.AdminEventDetailActivity"
-            android:exported="false" />
+            android:exported="false"/>
 
         <activity
             android:name=".ui.AdminManageProfilesActivity"
-            android:exported="false" />
+            android:exported="false"/>
 
         <activity
             android:name=".ui.AdminProfileDetailActivity"
-            android:exported="false" />
+            android:exported="false"/>
 
-        <!-- USER STORY 6 SCREEN -->
+        <activity
+            android:name=".ui.AdminManageImagesActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminManageOrganizersActivity"
+            android:exported="false"/>
+
         <activity
             android:name=".ui.AdminNotificationLogsActivity"
-            android:exported="false" />
+            android:exported="false"/>
 
     </application>
 
