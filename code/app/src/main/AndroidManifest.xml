@@ -51,6 +51,14 @@
             android:name=".ui.AdminDashboardActivity"
             android:exported="false"/>
 
+        <activity
+            android:name=".ui.AdminManageEventsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminEventDetailActivity"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

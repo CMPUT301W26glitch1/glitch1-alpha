@@ -24,9 +24,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
         CardView cardNotificationLogs = findViewById(R.id.cardNotificationLogs);
 
         // Clicking Manage Events launches the event list screen
-        /*cardManageEvents.setOnClickListener(v ->
+        cardManageEvents.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageEventsActivity.class)));
-
+/*
         cardManageProfiles.setOnClickListener(v ->
             startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
