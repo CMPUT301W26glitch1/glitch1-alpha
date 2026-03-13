@@ -1,6 +1,7 @@
 package com.example.eventlotterysystemapp.ui;
 
-import static com.example.eventlotterysystemapp.ui.UiUtils.showNotification;
+
+import com.example.eventlotterysystemapp.ui.UiUtils;
 
 import android.os.Bundle;
 import android.provider.Settings;
@@ -73,13 +74,34 @@ public class RegistrationActivity extends AppCompatActivity {
 
                 // ✅ Use callback version
                 usersdb.checkUser(user, new UserController.UserCallback() {
-                    @Override
+                  /*  @Override
                     public void onSuccess() {
                         UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
                         Intent intent = new Intent(RegistrationActivity.this, EventListActivity.class);
                         startActivity(intent);
                         finish();
-                    }
+                    }*/
+                  @Override
+                  public void onSuccess() {
+
+                      UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
+
+                      String role = roles.getSelectedItem().toString();
+                      Intent intent;
+
+                      if (role.equals("Admin")) {
+                          intent = new Intent(RegistrationActivity.this, AdminDashboardActivity.class);
+                      }
+                      else if (role.equals("Organizer")) {
+                          intent = new Intent(RegistrationActivity.this, com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity.class);
+                      }
+                      else {
+                          intent = new Intent(RegistrationActivity.this, EventListActivity.class);
+                      }
+
+                      startActivity(intent);
+                      finish();
+                  }
 
                     @Override
                     public void onError(String message) {
