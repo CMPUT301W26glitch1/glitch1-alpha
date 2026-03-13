@@ -1,6 +1,8 @@
 package com.example.eventlotterysystemapp.data.models;
 
-
+/**
+ * User class object used to store information of user accounts
+ */
 public class User {
     private String name;
     private String password;

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="15dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Update Poster"
+        android:textSize="35sp"
+        android:textStyle="bold"/>
+
+    <ImageView
+        android:id="@+id/previewPoster"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="center"
+        android:layout_gravity="center"
+        android:src="@android:drawable/ic_menu_gallery" />
+
+    <Button
+        android:id="@+id/newImgBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="Select New Image"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:id="@+id/updateBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="Update"
+        android:layout_marginTop="10dp"/>
+
+</LinearLayout>
