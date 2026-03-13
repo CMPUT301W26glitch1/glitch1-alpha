@@ -3,8 +3,10 @@ package com.example.eventlotterysystemapp.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+
 import com.example.eventlotterysystemapp.R;
 
 // AdminDashboardActivity is the home screen for Admin users.
@@ -23,15 +25,16 @@ public class AdminDashboardActivity extends AppCompatActivity {
         CardView cardManageOrganizers = findViewById(R.id.cardManageOrganizers);
         CardView cardNotificationLogs = findViewById(R.id.cardNotificationLogs);
 
+        // Clicking Manage Events launches the event list screen
+        cardManageEvents.setOnClickListener(v ->
+                startActivity(new Intent(this, AdminManageEventsActivity.class)));
+
         // Clicking Manage Profiles launches the profile browsing screen
         cardManageProfiles.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
         // The remaining cards are commented out until those activities are built
         /*
-        cardManageEvents.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageEventsActivity.class)));
-
         cardManageImages.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminManageImagesActivity.class)));
 

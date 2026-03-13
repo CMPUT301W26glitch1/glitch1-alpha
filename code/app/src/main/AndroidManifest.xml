@@ -60,6 +60,21 @@
             android:name=".ui.AdminManageProfilesActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.AdminManageEventsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminEventDetailActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".ui.AdminManageProfilesActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminProfileDetailActivity"
+            android:exported="false"/>
+
     </application>
 
 </manifest>
