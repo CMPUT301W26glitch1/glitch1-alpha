@@ -12,18 +12,28 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 
+/**
+ * EventController handles all the Firestore stuff for events
+ *
+ * so you can add new events, update them, or fetch them
+ * depending on if you want to show just their names or full objects to show a list
+ *
+ */
 public class EventController {
     private FirebaseFirestore db;
     private CollectionReference eventsRef;
     private Context context;
-
+    /**
+     * Constructor. Just pass in the Activity context so we can show messages.
+     */
     public EventController(Context context) {
         db = FirebaseFirestore.getInstance();
         eventsRef = db.collection("events");
         this.context = context;
     }
-
-    // Add a new event to Firestore
+    /**
+     * Constructor. Just pass in the Activity context so we can show messages.
+     */
     public void addEvent(EventData event) {
         eventsRef.add(event)
                 .addOnSuccessListener(docRef ->
@@ -32,7 +42,11 @@ public class EventController {
                         Toast.makeText(context, "Failed to add event", Toast.LENGTH_SHORT).show());
     }
 
-    // Update a field of an existing event
+
+    /**
+     * Update one field of an event.
+     * Could be availability, name, whatever.
+     */
     public void updateEvent(String eventId, String field, String value) {
         eventsRef.document(eventId)
                 .update(field, value)
@@ -42,7 +56,10 @@ public class EventController {
                         Toast.makeText(context, "Failed to update event", Toast.LENGTH_SHORT).show());
     }
 
-    // Get full events for filtering/search
+    /**
+     * Get all events as full objects so you can filter/search/etc.
+     * The callback gives you the list or an error message.
+     */
     public void getAllEventObjects(@NonNull EventCallback callback) {
         eventsRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -61,13 +78,18 @@ public class EventController {
         });
     }
 
-    // Callback interface
+    /**
+     * Callback interface for async Firestore fetching.
+     * Just gives you the events or an error message.
+     */
     public interface EventCallback {
         void onSuccess(ArrayList<EventData> events);
         void onError(String message);
     }
 
-    // Event object including ID
+    /**
+     * EventData is just a simple object to hold info about one event.
+     */
     public static class EventData {
         public String id;
         public String name;
@@ -82,7 +104,10 @@ public class EventController {
         }
     }
 
-    // Optional: simple helper to populate names only
+    /**
+     * Just grabs all event names if you only need a list of names.
+     * Optionally updates an ArrayAdapter so a ListView/Spinner can show it immediately.
+     */
     public void getAllEventNames(ArrayList<String> names, ArrayAdapter<String> adapter) {
         eventsRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

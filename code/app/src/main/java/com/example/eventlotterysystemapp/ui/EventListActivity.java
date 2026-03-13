@@ -104,7 +104,6 @@ public class EventListActivity extends AppCompatActivity {
             }
         });
     }
-
     private void applyFilters() {
         String searchQuery = searchView.getQuery().toString().toLowerCase();
         String selectedCategory = categorySpinner.getSelectedItem().toString();

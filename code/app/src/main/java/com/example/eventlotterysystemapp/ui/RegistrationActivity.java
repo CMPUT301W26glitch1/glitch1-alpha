@@ -72,15 +72,8 @@ public class RegistrationActivity extends AppCompatActivity {
                         deviceId
                 );
 
-                // ✅ Use callback version
+
                 usersdb.checkUser(user, new UserController.UserCallback() {
-                  /*  @Override
-                    public void onSuccess() {
-                        UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
-                        Intent intent = new Intent(RegistrationActivity.this, EventListActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }*/
                   @Override
                   public void onSuccess() {
 
