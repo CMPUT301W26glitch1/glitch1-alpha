@@ -27,28 +27,38 @@ public class UserController {
         usersRef = db.collection("users");
         this.context= context;
     }
+    public interface UserCallback {
+        void onSuccess();
+        void onError(String message);
+
+    }
+
 
     public void registerUser(User user){
         usersRef.document()
                 .set(user);
-        UiUtils.showNotification(context, "Success", "User registered successfully;");
+       // UiUtils.showNotification(context, "Success", "User registered successfully;");
     }
 
-    public void checkUser(User user){
+    // ✅ Updated checkUser() with callback
+    public void checkUser(User user, UserCallback callback){
         if (user.getName().equals("") || user.getPassword().equals("") || user.getEmail().equals("")) {
-            UiUtils.showNotification(context, "Error", "Do not leave any fields empty");
+            callback.onError("Do not leave any fields empty");
         } else {
-             usersRef.whereEqualTo("email", user.getEmail())
+            usersRef.whereEqualTo("email", user.getEmail())
                     .get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
                                 if (!task.getResult().isEmpty()) {
-                                    UiUtils.showNotification(context, "Error", "This email has already been registered");
+                                    callback.onError("This email has already been registered");
                                 } else {
                                     registerUser(user);
+                                    callback.onSuccess();
                                 }
+                            } else {
+                                callback.onError("Error accessing database");
                             }
                         }
                     });
