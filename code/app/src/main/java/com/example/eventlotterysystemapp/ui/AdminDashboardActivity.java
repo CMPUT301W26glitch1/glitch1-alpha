@@ -2,58 +2,34 @@ package com.example.eventlotterysystemapp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.example.eventlotterysystemapp.R;
 
-// AdminDashboardActivity is the home screen for Admin users.
-// It presents a menu of admin actions, each represented as a clickable CardView.
 public class AdminDashboardActivity extends AppCompatActivity {
+
+    CardView cardManageEvents;
+    CardView cardManageProfiles;
+    CardView cardManageImages;
+    CardView cardManageOrganizers;
+    CardView cardNotificationLogs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
-        // Bind each card to its view in activity_admin_dashboard.xml
-        CardView cardManageEvents     = findViewById(R.id.cardManageEvents);
-        CardView cardManageProfiles   = findViewById(R.id.cardManageProfiles);
-        CardView cardManageImages     = findViewById(R.id.cardManageImages);
-        CardView cardManageOrganizers = findViewById(R.id.cardManageOrganizers);
-        CardView cardNotificationLogs = findViewById(R.id.cardNotificationLogs);
+        // Bind views
+        cardManageEvents = findViewById(R.id.cardManageEvents);
+        cardManageProfiles = findViewById(R.id.cardManageProfiles);
+        cardManageImages = findViewById(R.id.cardManageImages);
+        cardManageOrganizers = findViewById(R.id.cardManageOrganizers);
+        cardNotificationLogs = findViewById(R.id.cardNotificationLogs);
 
-        // Clicking Manage Events launches the event list screen
-        cardManageEvents.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageEventsActivity.class)));
-
-        // Clicking Manage Profiles launches the profile browsing screen
-        cardManageProfiles.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageProfilesActivity.class)));
-
-        // Clicking Notification Logs launches the notification logs screen
+        // Open Notification Logs screen
         cardNotificationLogs.setOnClickListener(v ->
                 startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
-
-        // The remaining cards are commented out until those activities are built
-        /*
-        cardManageImages.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageImagesActivity.class)));
-
-        cardManageOrganizers.setOnClickListener(v ->
-                startActivity(new Intent(this, AdminManageOrganizersActivity.class)));
-        */
-
-        // Logout button: navigates back to LoginActivity and clears the entire back stack.
-        // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK ensures the admin cannot
-        // press back to return to the dashboard after logging out.
-        Button btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(v -> {
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        });
     }
 }
