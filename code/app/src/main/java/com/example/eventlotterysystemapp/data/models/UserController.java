@@ -15,11 +15,13 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
 /**
  * UserController handles all the Firestore operations related to Users.
  * This includes registering a new user and checking if a user already exists.
  * Basically: talk to Firebase so we don't have duplicate emails and users get saved.
  */
+
 public class UserController {
     private FirebaseFirestore db;
     private CollectionReference usersRef;

@@ -1,9 +1,11 @@
 package com.example.eventlotterysystemapp.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Spinner;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 
 public class EventListActivity extends AppCompatActivity {
 
+    Button profileButton;
     ListView eventList;
     SearchView searchView;
     Spinner categorySpinner, availabilitySpinner;
@@ -33,6 +36,8 @@ public class EventListActivity extends AppCompatActivity {
         eventList = findViewById(R.id.eventList);
         searchView = findViewById(R.id.searchEvents);
         searchView.clearFocus();
+        profileButton = findViewById(R.id.profileButton);
+
 
         categorySpinner = findViewById(R.id.filterCategory);
         availabilitySpinner = findViewById(R.id.filterAvailability);
@@ -72,6 +77,18 @@ public class EventListActivity extends AppCompatActivity {
 
         categorySpinner.setOnItemSelectedListener(filterListener);
         availabilitySpinner.setOnItemSelectedListener(filterListener);
+
+        //Profile button ---> goes to profile
+        profileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(EventListActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+
+        });
+
+
 
         // SearchView listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
