@@ -113,6 +113,7 @@ public class LoginActivity extends AppCompatActivity {
                         case "Entrant":
                             // TODO: replace with EntrantDashboardActivity when built
                             Toast.makeText(this, "Welcome, Entrant!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, EventListActivity.class));
                             break;
                         default:
                             // Role field is missing or unrecognized

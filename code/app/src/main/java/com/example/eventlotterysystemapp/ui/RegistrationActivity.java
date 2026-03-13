@@ -1,8 +1,8 @@
 package com.example.eventlotterysystemapp.ui;
 
-import static com.example.eventlotterysystemapp.ui.UiUtils.showNotification;
 
-import android.content.Intent;
+import com.example.eventlotterysystemapp.ui.UiUtils;
+
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
@@ -10,9 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,74 +21,105 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserController;
-import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 
-/**
- * The Registration screen for users to register a new user account
- */
 public class RegistrationActivity extends AppCompatActivity {
-    Button registerButton, returnButton;
+    Button registerButton;
     EditText username;
     EditText password;
     EditText email;
     Spinner roles;
     ArrayAdapter<String> rolesAdapter;
-    UserController usersdb = new UserController(this);
-
-
+    UserController usersdb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
+
+        // Handle system bars padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Init views
         registerButton = findViewById(R.id.registerButton);
-        returnButton = findViewById(R.id.returnButton);
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         email = findViewById(R.id.email);
         roles = findViewById(R.id.roles);
 
+        // Spinner setup
         String[] rolesList = new String[]{"Entrant", "Organizer", "Admin"};
         rolesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, rolesList);
         roles.setAdapter(rolesAdapter);
 
+        // Init UserController
+        usersdb = new UserController(this);
+
+        // Register button listener
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-                User user = new User(username.getText().toString(), password.getText().toString(), email.getText().toString(), roles.getSelectedItem().toString(), deviceId);
-                usersdb.checkUser(user);
+                User user = new User(
+                        username.getText().toString(),
+                        password.getText().toString(),
+                        email.getText().toString(),
+                        roles.getSelectedItem().toString(),
+                        deviceId
+                );
+
+                // ✅ Use callback version
+                usersdb.checkUser(user, new UserController.UserCallback() {
+                  /*  @Override
+                    public void onSuccess() {
+                        UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
+                        Intent intent = new Intent(RegistrationActivity.this, EventListActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }*/
+                  @Override
+                  public void onSuccess() {
+
+                      UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
+
+                      String role = roles.getSelectedItem().toString();
+                      Intent intent;
+
+                      if (role.equals("Admin")) {
+                          intent = new Intent(RegistrationActivity.this, AdminDashboardActivity.class);
+                      }
+                      else if (role.equals("Organizer")) {
+                          intent = new Intent(RegistrationActivity.this, com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity.class);
+                      }
+                      else {
+                          intent = new Intent(RegistrationActivity.this, EventListActivity.class);
+                      }
+
+                      startActivity(intent);
+                      finish();
+                  }
+
+                    @Override
+                    public void onError(String message) {
+                        UiUtils.showNotification(RegistrationActivity.this, "Error", message);
+                    }
+                });
             }
         });
-
-        returnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
-                finish();
-            }
-        });
-
     }
 
     /**private void showNotification(String message) {
-        new AlertDialog.Builder(this)
-                .setTitle("Notification")
-                .setMessage(message)
-                .setPositiveButton("OK", (dialog, which) -> {
-                    // This runs when they click OK
-                    dialog.dismiss();
-                })
-                .show();
-    }*/
-
-
+     new AlertDialog.Builder(this)
+     .setTitle("Notification")
+     .setMessage(message)
+     .setPositiveButton("OK", (dialog, which) -> {
+     dialog.dismiss();
+     })
+     .show();
+     }*/
 
 }

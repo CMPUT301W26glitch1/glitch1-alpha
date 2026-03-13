@@ -16,9 +16,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-/**
- * Controller class for User object used to add users to firestore database
- */
 public class UserController {
     private FirebaseFirestore db;
     private CollectionReference usersRef;
@@ -30,36 +27,38 @@ public class UserController {
         usersRef = db.collection("users");
         this.context= context;
     }
+    public interface UserCallback {
+        void onSuccess();
+        void onError(String message);
 
-    /**
-     * Adds a user to firestore database
-     * @param user User object to be added
-     */
-    public void registerUser(User user){
-        usersRef.document(user.getEmail())
-                .set(user);
-        UiUtils.showNotification(context, "Success", "User registered successfully;");
     }
 
-    /**
-     * Verifies whether the information for the user meets the requirements, before passing it along to be registered
-     * @param user User object to be verified
-     */
-    public void checkUser(User user){
+
+    public void registerUser(User user){
+        usersRef.document()
+                .set(user);
+       // UiUtils.showNotification(context, "Success", "User registered successfully;");
+    }
+
+    // ✅ Updated checkUser() with callback
+    public void checkUser(User user, UserCallback callback){
         if (user.getName().equals("") || user.getPassword().equals("") || user.getEmail().equals("")) {
-            UiUtils.showNotification(context, "Error", "Do not leave any fields empty");
+            callback.onError("Do not leave any fields empty");
         } else {
-             usersRef.whereEqualTo("email", user.getEmail())
+            usersRef.whereEqualTo("email", user.getEmail())
                     .get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
                                 if (!task.getResult().isEmpty()) {
-                                    UiUtils.showNotification(context, "Error", "This email has already been registered");
+                                    callback.onError("This email has already been registered");
                                 } else {
                                     registerUser(user);
+                                    callback.onSuccess();
                                 }
+                            } else {
+                                callback.onError("Error accessing database");
                             }
                         }
                     });

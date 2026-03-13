@@ -65,6 +65,8 @@
         <activity
             android:name=".ui.AdminProfileDetailActivity"
             android:exported="false"/>
+        <activity android:name=".ui.EventListActivity"
+        android:exported="false"/>
 
     </application>
 
