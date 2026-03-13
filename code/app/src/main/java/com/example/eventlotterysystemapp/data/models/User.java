@@ -9,6 +9,7 @@ public class User {
     private String email;
     private String role;
     private String lastDeviceId;
+    private Integer phoneNumber;
 
     public User(String name, String password, String email, String role, String lastDeviceId) {
         this.name = name;
@@ -16,6 +17,7 @@ public class User {
         this.email = email;
         this.role = role;
         this.lastDeviceId = lastDeviceId;
+        this.phoneNumber = -1;
     }
 
     // -----getters and setters-----
@@ -51,6 +53,12 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public String getPhoneNumber(){return phoneNumber.toString();}
+    public void setPhoneNumber(String phone) {
+        this.phoneNumber = phoneNumber;
+    }
+
 
     public String getLastDeviceId() {
         return lastDeviceId;
