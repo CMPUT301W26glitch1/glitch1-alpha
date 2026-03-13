@@ -96,6 +96,7 @@ public class RegistrationActivity extends AppCompatActivity {
                           intent = new Intent(RegistrationActivity.this, com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity.class);
                       }
                       else {
+                          UserSession.setUser(user);
                           intent = new Intent(RegistrationActivity.this, EventListActivity.class);
                       }
 
