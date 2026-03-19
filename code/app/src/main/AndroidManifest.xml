@@ -69,6 +69,18 @@
             android:exported="false"/>
         <activity android:name=".ui.EventListActivity"
         android:exported="false"/>
+        <activity
+            android:name=".ui.AdminManageImagesActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminNotificationLogsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminManageOrganizersActivity"
+            android:exported="false"/>
+
 
     </application>
 
