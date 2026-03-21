@@ -57,7 +57,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
         organizerEmail = getIntent().getStringExtra("USER_EMAIL");
 
-        eventController = new EventController();
+        eventController = new EventController(this);
 
         // Bind views
         eventTitle = findViewById(R.id.eventTitle);
