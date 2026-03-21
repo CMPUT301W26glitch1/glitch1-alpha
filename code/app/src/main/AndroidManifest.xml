@@ -68,7 +68,10 @@
             android:name=".ui.AdminProfileDetailActivity"
             android:exported="false"/>
         <activity android:name=".ui.EventListActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
         android:exported="false"/>
+        <activity android:name=".ui.FilterActivity"
+            android:exported="false" />
 
     </application>
 
