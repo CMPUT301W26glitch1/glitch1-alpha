@@ -47,6 +47,8 @@
             android:exported="false">
         </activity>
 
+        <activity android:name=".ui.ProfileActivity"></activity>
+
         <activity
             android:name=".ui.AdminDashboardActivity"
             android:exported="false"/>
@@ -65,6 +67,8 @@
         <activity
             android:name=".ui.AdminProfileDetailActivity"
             android:exported="false"/>
+        <activity android:name=".ui.EventListActivity"
+        android:exported="false"/>
 
     </application>
 
