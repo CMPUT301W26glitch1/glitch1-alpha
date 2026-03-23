@@ -2,130 +2,205 @@ package com.example.eventlotterysystemapp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.SearchView;
-import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.data.models.Event;
+import com.example.eventlotterysystemapp.data.models.EntrantEventAdapter; // Ensure this import matches your project
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 
 public class EventListActivity extends AppCompatActivity {
 
-    Button profileButton;
-    ListView eventList;
-    SearchView searchView;
-    Spinner categorySpinner, availabilitySpinner;
+    private RecyclerView eventRecyclerView;
+    private SearchView searchView;
+    private Button btnFilter;
+    private FloatingActionButton fabNotifications, fabCamera;
+    private TextView tvUserIcon;
+    private android.widget.ImageView ivMainOptions;
+    private ArrayList<Event> allEvents;
+    private ArrayList<Event> filteredEvents;
+    private EntrantEventAdapter adapter;
+    private FirebaseFirestore db;
 
-    ArrayList<String> events;       // All events
-    ArrayList<String> filteredEvents; // Filtered events
-    ArrayAdapter<String> adapter;
+    private static final int FILTER_REQUEST_CODE = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
-        // Init views
-        eventList = findViewById(R.id.eventList);
+        // 1. Initialize UI
+        eventRecyclerView = findViewById(R.id.eventRecyclerView);
         searchView = findViewById(R.id.searchEvents);
-        searchView.clearFocus();
-        profileButton = findViewById(R.id.profileButton);
+        btnFilter = findViewById(R.id.btnFilter);
+        fabNotifications = findViewById(R.id.fabNotifications);
+        fabCamera = findViewById(R.id.fabCamera);
+        tvUserIcon = findViewById(R.id.tvUserIcon);
+        ivMainOptions = findViewById(R.id.ivMainOptions);
 
+        eventRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        categorySpinner = findViewById(R.id.filterCategory);
-        availabilitySpinner = findViewById(R.id.filterAvailability);
+        // 2. Data setup
+        allEvents = new ArrayList<>();
+        filteredEvents = new ArrayList<>();
 
-        // Sample events: format "EventName|Category|Availability"
-        events = new ArrayList<>();
-        events.add("Music Festival|Music|Open");
-        events.add("Tech Conference|Science|Open");
-        events.add("Startup Pitch Night|Arts|Closed");
-        events.add("Art Exhibition|Arts|Open");
-        events.add("Nature Walk|Nature|Closed");
+        // Pass 'this' as context for Glide/Layout inflation
+        adapter = new EntrantEventAdapter(this, filteredEvents);
+        eventRecyclerView.setAdapter(adapter);
 
-        filteredEvents = new ArrayList<>(events);
+        // 3. Initialize Firebase and Start Listening
+        db = FirebaseFirestore.getInstance();
+        startFirebaseListener();
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filteredEvents);
-        eventList.setAdapter(adapter);
+        // 4. Click Listeners
+        tvUserIcon.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
 
-        // Setup Category Spinner
-        String[] categories = {"All", "Music", "Science", "Nature", "Arts"};
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
-        categorySpinner.setAdapter(categoryAdapter);
+        ivMainOptions.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(this, v);
+            popup.getMenu().add("Refresh List"); // This will now trigger the listener update
+            popup.getMenu().add("Settings");
+            popup.getMenu().add("Logout");
 
-        // Setup Availability Spinner
-        String[] availability = {"All", "Open", "Closed"};
-        ArrayAdapter<String> availabilityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, availability);
-        availabilitySpinner.setAdapter(availabilityAdapter);
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getTitle().equals("Refresh List")) {
+                    startFirebaseListener(); // Re-triggering refresh
+                    return true;
+                } else if (item.getTitle().equals("Logout")) {
+                    // 1. Create the Intent to go back to the Sign In page
+                    // (Change 'SignInActivity.class' to the actual name of your login file!)
+                    Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
 
-        // Spinner listeners
-        AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                applyFilters();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        };
+                    // 2. Clear the history so they can't "Back" into the app after logging out
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-        categorySpinner.setOnItemSelectedListener(filterListener);
-        availabilitySpinner.setOnItemSelectedListener(filterListener);
+                    startActivity(intent);
 
-        //Profile button ---> goes to profile
-        profileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(EventListActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-
+                    // 3. Optional: Show a toast
+                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
 
+        btnFilter.setOnClickListener(v -> {
+            Intent intent = new Intent(this, FilterActivity.class);
+            startActivityForResult(intent, FILTER_REQUEST_CODE);
+        });
 
-
-        // SearchView listener
+        // 5. Search Logic
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                applyFilters();
                 return false;
             }
+
             @Override
             public boolean onQueryTextChange(String newText) {
-                applyFilters();
+                filterBySearch(newText);
                 return true;
             }
         });
     }
-    private void applyFilters() {
-        String searchQuery = searchView.getQuery().toString().toLowerCase();
-        String selectedCategory = categorySpinner.getSelectedItem().toString();
-        String selectedAvailability = availabilitySpinner.getSelectedItem().toString();
 
+    private void startFirebaseListener() {
+        db.collection("events").addSnapshotListener((value, error) -> {
+            if (error != null) {
+                Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (value != null) {
+                allEvents.clear();
+                for (QueryDocumentSnapshot doc : value) {
+                    Event event = doc.toObject(Event.class);
+                    event.setEventId(doc.getId());
+                    allEvents.add(event);
+                }
+                filteredEvents.clear();
+                filteredEvents.addAll(allEvents);
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void filterBySearch(String text) {
+        filteredEvents.clear();
+        for (Event event : allEvents) {
+            if (event.getName() != null && event.getName().toLowerCase().contains(text.toLowerCase())) {
+                filteredEvents.add(event);
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILTER_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            String avail = data.getStringExtra("AVAIL");
+            String interest = data.getStringExtra("INTEREST");
+            applyAdvancedFilters(avail, interest);
+        }
+        else{
+            resetFilters();
+        }
+
+
+        }
+private void resetFilters() {
+    filteredEvents.clear();
+    filteredEvents.addAll(allEvents);
+    adapter.notifyDataSetChanged();
+    Toast.makeText(this, "Filters Reset", Toast.LENGTH_SHORT).show();
+}
+
+    private void applyAdvancedFilters(String avail, String interest) {
         filteredEvents.clear();
 
-        for (String event : events) {
-            String[] parts = event.split("\\|"); // "EventName|Category|Availability"
-            String name = parts[0];
-            String category = parts[1];
-            String availability = parts[2];
+        // 1. Handle nulls and convert to lowercase
+        String filterAvail = (avail == null) ? "all" : avail.toLowerCase();
+        String filterInterest = (interest == null) ? "all" : interest.toLowerCase();
 
-            boolean matchesSearch = name.toLowerCase().contains(searchQuery);
-            boolean matchesCategory = selectedCategory.equals("All") || category.equals(selectedCategory);
-            boolean matchesAvailability = selectedAvailability.equals("All") || availability.equals(selectedAvailability);
+        for (Event event : allEvents) {
+            // Use the actual data from your Event object
+            String name = (event.getName() != null) ? event.getName().toLowerCase() : "";
+            String category = (event.getCategory() != null) ? event.getCategory().toLowerCase() : "";
 
-            if (matchesSearch && matchesCategory && matchesAvailability) {
-                filteredEvents.add(name);
+            // 2. The Logic:
+            // Match if the filter is "All" OR if the category/name contains the filter word
+            boolean matchAvail = filterAvail.equals("all") || filterAvail.equals("availability")
+                    || name.contains(filterAvail);
+
+            boolean matchInterest = filterInterest.equals("all") || filterInterest.equals("interests")
+                    || category.contains(filterInterest)
+                    || name.contains(filterInterest);
+
+            if (matchAvail && matchInterest) {
+                filteredEvents.add(event);
             }
         }
 
+        // 3. Tell the adapter to refresh the screen with the new filtered list
         adapter.notifyDataSetChanged();
+
+        if (filteredEvents.isEmpty()) {
+            Toast.makeText(this, "No events match those filters", Toast.LENGTH_SHORT).show();
+        }
     }
 }
