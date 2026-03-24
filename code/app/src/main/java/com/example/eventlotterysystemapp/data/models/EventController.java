@@ -6,9 +6,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -31,15 +34,14 @@ public class EventController {
         eventsRef = db.collection("events");
         this.context = context;
     }
+
     /**
-     * Constructor. Just pass in the Activity context so we can show messages.
+     * Saves a new event to Firestore.
+     * @param event The event object to save.
+     * @param listener Callback to handle the document reference (and the new ID).
      */
-    public void addEvent(EventData event) {
-        eventsRef.add(event)
-                .addOnSuccessListener(docRef ->
-                        Toast.makeText(context, "Event added", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(context, "Failed to add event", Toast.LENGTH_SHORT).show());
+    public void addEvent(Event event, OnSuccessListener<DocumentReference> listener) {
+        eventsRef.add(event).addOnSuccessListener(listener);
     }
 
 
@@ -121,5 +123,14 @@ public class EventController {
                 Toast.makeText(context, "Failed to load event names", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    /**
+     * Retrieves all events created by a specific organizer.
+     * @param organizerId The device ID of the organizer.
+     * @param listener Callback to handle the list of events.
+     */
+    public void getOrganizerEvents(String organizerId, OnSuccessListener<QuerySnapshot> listener) {
+        eventsRef.whereEqualTo("organizerId", organizerId).get().addOnSuccessListener(listener);
     }
 }
