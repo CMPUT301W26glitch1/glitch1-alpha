@@ -1,5 +1,7 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
+import android.app.Notification;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Participant;
 import com.example.eventlotterysystemapp.data.models.ParticipantAdapter;
+import com.example.eventlotterysystemapp.ui.organizer.NotificationActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -58,11 +61,23 @@ public class ParticipantListFragment extends Fragment {
 
         // Logic for the Lottery Button
         Button btnLottery = view.findViewById(R.id.btnLottery);
+        Button btnNotification = view.findViewById(R.id.btnNotify);
+
         if ("waitlist".equals(status)) {
             btnLottery.setVisibility(View.VISIBLE);
+            btnNotification.setVisibility(View.GONE);
             btnLottery.setOnClickListener(v -> { /* Lottery logic here later */ });
+        } else if ("selected".equals(status)){
+            btnLottery.setVisibility(View.GONE);
+            btnNotification.setVisibility(View.VISIBLE);
+            btnNotification.setOnClickListener(v -> {
+                Intent intent = new Intent(getContext(), NotificationActivity.class);
+                intent.putExtra("EVENT_ID", eventId);
+                startActivity(intent);
+            });
         } else {
             btnLottery.setVisibility(View.GONE);
+            btnNotification.setVisibility(View.GONE);
         }
 
         // Fetch participants in real-time

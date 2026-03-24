@@ -46,6 +46,13 @@
             android:name=".ui.organizer.EventParticipantsActivity"
             android:exported="false">
         </activity>
+        <activity
+            android:name=".ui.organizer.InviteEntrantActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.NotificationActivity">
+        </activity>
     </application>
 
 </manifest>

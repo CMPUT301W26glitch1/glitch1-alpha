@@ -36,6 +36,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private ImageView eventPoster;
     private Button selectImageBtn;
     private Uri selectedImageUri; // Stores the local image path
+    private Switch eventSwitch;
 
     // Store selected times
     private LocalDateTime selectedEventTime, selectedRegStart, selectedRegEnd;
@@ -68,6 +69,7 @@ public class CreateEventActivity extends AppCompatActivity {
         regEnd = findViewById(R.id.registrationEnd);
         eventPlace = findViewById(R.id.eventPlace);
         geoSwitch = findViewById(R.id.geoLocation);
+        eventSwitch = findViewById(R.id.privateEventSwitch);
         nextBtn = findViewById(R.id.nextBtn);
         eventPoster = findViewById(R.id.eventPoster);
         selectImageBtn = findViewById(R.id.selectImageBtn);
@@ -77,6 +79,7 @@ public class CreateEventActivity extends AppCompatActivity {
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                     .build());
         });
+
 
         // Set up pickers
         setupDateTimePicker(eventTime, dt -> selectedEventTime = dt);
@@ -92,6 +95,8 @@ public class CreateEventActivity extends AppCompatActivity {
     private void saveEvent() {
         String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
+        boolean isPrivate = eventSwitch.isChecked();
+
         Event event = new Event(
                 eventTitle.getText().toString(),
                 eventDescription.getText().toString(),
@@ -102,7 +107,8 @@ public class CreateEventActivity extends AppCompatActivity {
                 selectedRegEnd,
                 geoSwitch.isChecked(),
                 organizerEmail,
-                null
+                null,
+                isPrivate
         );
 
         // Save Event to Firestore first
@@ -111,6 +117,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
             event.setEventId(eventId);
             docRef.update("eventId", eventId);
+            docRef.update("privateEvent", isPrivate);
 
             // If an image was selected, upload it
             if (selectedImageUri != null) {
@@ -120,10 +127,18 @@ public class CreateEventActivity extends AppCompatActivity {
                     docRef.update("posterUrl", downloadUrl);
 
                     // Now navigate
-                    navigateToQR(eventId);
+                    if (isPrivate){
+                        finish();
+                    } else {
+                        navigateToQR(eventId);
+                    }
                 });
             } else {
-                navigateToQR(eventId);
+                if (isPrivate){
+                    finish();
+                } else{
+                    navigateToQR(eventId);
+                }
             }
         });
     }
