@@ -114,13 +114,15 @@ public class LoginActivity extends AppCompatActivity {
                             // TODO: replace with EntrantDashboardActivity when built
                             Toast.makeText(this, "Welcome, Entrant!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(this, EventListActivity.class));
+                            finish();
+
                             break;
                         default:
                             // Role field is missing or unrecognized
                             Toast.makeText(this, "Unknown role", Toast.LENGTH_SHORT).show();
                     }
 
-                    finish();
+                  //  finish();
                 })
                 // If the Firestore call itself fails (e.g. no internet), show the error
                 .addOnFailureListener(e ->

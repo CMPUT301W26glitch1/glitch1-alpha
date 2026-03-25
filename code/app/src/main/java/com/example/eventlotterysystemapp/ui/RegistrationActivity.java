@@ -1,7 +1,7 @@
 package com.example.eventlotterysystemapp.ui;
 
 
-import com.example.eventlotterysystemapp.ui.UiUtils;
+import com.example.eventlotterysystemapp.data.models.UserSession;
 
 import android.os.Bundle;
 import android.provider.Settings;
@@ -72,15 +72,8 @@ public class RegistrationActivity extends AppCompatActivity {
                         deviceId
                 );
 
-                // ✅ Use callback version
+
                 usersdb.checkUser(user, new UserController.UserCallback() {
-                  /*  @Override
-                    public void onSuccess() {
-                        UiUtils.showNotification(RegistrationActivity.this, "Success", "User registered successfully!");
-                        Intent intent = new Intent(RegistrationActivity.this, EventListActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }*/
                   @Override
                   public void onSuccess() {
 
@@ -96,6 +89,7 @@ public class RegistrationActivity extends AppCompatActivity {
                           intent = new Intent(RegistrationActivity.this, com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity.class);
                       }
                       else {
+                          UserSession.setUser(user);
                           intent = new Intent(RegistrationActivity.this, EventListActivity.class);
                       }
 
