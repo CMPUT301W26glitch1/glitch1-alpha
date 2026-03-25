@@ -16,6 +16,10 @@ import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 // LoginActivity is the entry point of the app.
 // It handles authentication for all roles: Admin, Organizer, and Entrant.
 public class LoginActivity extends AppCompatActivity {
@@ -71,7 +75,7 @@ public class LoginActivity extends AppCompatActivity {
         // whereEqualTo chains act as AND conditions on the query.
         db.collection("users")
                 .whereEqualTo("email", email)
-                .whereEqualTo("password", password)
+                .whereEqualTo("password", hashPassword(password))
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
 
@@ -125,5 +129,20 @@ public class LoginActivity extends AppCompatActivity {
                 // If the Firestore call itself fails (e.g. no internet), show the error
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        }
     }
 }
