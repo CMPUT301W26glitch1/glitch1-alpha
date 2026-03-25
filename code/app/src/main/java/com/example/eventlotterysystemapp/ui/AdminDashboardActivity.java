@@ -6,6 +6,7 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.example.eventlotterysystemapp.R;
+import android.widget.Toast;
 
 // AdminDashboardActivity is the home screen for Admin users.
 // It presents a menu of admin actions, each represented as a clickable CardView.
@@ -31,7 +32,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             startActivity(new Intent(this, AdminManageProfilesActivity.class)));
 
         // The remaining cards are commented out until those activities are built
-        /*
+
         cardManageImages.setOnClickListener(v ->
             startActivity(new Intent(this, AdminManageImagesActivity.class)));
 
@@ -40,10 +41,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         cardNotificationLogs.setOnClickListener(v ->
             startActivity(new Intent(this, AdminNotificationLogsActivity.class)));
-        */
 
-        // Logout button: navigates back to LoginActivity and clears the entire back stack.
-        // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK makes sure the admin cannot
         // press the back button to re-enter the dashboard after logging out.
         Button btnLogout = findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(v -> {
