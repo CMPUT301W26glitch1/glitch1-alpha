@@ -100,7 +100,8 @@ public class LoginActivity extends AppCompatActivity {
                     switch (role != null ? role : "") {
                         case "Admin":
                             // Navigate to AdminDashboardActivity
-                            Toast.makeText(this, "Welcome, Admin!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, AdminDashboardActivity.class));
+                            finish();
                             break;
                         case "Organizer":
                             Intent intent = new Intent(this, OrganizerMainActivity.class);
@@ -112,13 +113,16 @@ public class LoginActivity extends AppCompatActivity {
                         case "Entrant":
                             // TODO: replace with EntrantDashboardActivity when built
                             Toast.makeText(this, "Welcome, Entrant!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, EventListActivity.class));
+                            finish();
+
                             break;
                         default:
                             // Role field is missing or unrecognized
                             Toast.makeText(this, "Unknown role", Toast.LENGTH_SHORT).show();
                     }
 
-                    finish();
+                  //  finish();
                 })
                 // If the Firestore call itself fails (e.g. no internet), show the error
                 .addOnFailureListener(e ->

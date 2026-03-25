@@ -46,13 +46,33 @@
             android:name=".ui.organizer.EventParticipantsActivity"
             android:exported="false">
         </activity>
+
+        <activity android:name=".ui.ProfileActivity"></activity>
+
         <activity
-            android:name=".ui.organizer.InviteEntrantActivity"
-            android:exported="false">
-        </activity>
+            android:name=".ui.AdminDashboardActivity"
+            android:exported="false"/>
+
         <activity
-            android:name=".ui.organizer.NotificationActivity">
-        </activity>
+            android:name=".ui.AdminManageEventsActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminEventDetailActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".ui.AdminManageProfilesActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.AdminProfileDetailActivity"
+            android:exported="false"/>
+        <activity android:name=".ui.EventListActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+        android:exported="false"/>
+        <activity android:name=".ui.FilterActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

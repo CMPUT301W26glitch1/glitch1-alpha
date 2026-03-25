@@ -17,49 +17,70 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 /**
- * Controller class for User object used to add users to firestore database
+ * UserController handles all the Firestore operations related to Users.
+ * This includes registering a new user and checking if a user already exists.
+ * Basically: talk to Firebase so we don't have duplicate emails and users get saved.
  */
+
 public class UserController {
     private FirebaseFirestore db;
     private CollectionReference usersRef;
     private UiUtils uiUtils;
     private Context context;
-
+    /**
+     * Constructor for UserController
+     * @param context the app context, used for Toasts or notifications
+     */
     public UserController(Context context){
         db = FirebaseFirestore.getInstance();
         usersRef = db.collection("users");
         this.context= context;
     }
-
     /**
-     * Adds a user to firestore database
-     * @param user User object to be added
+     * Callback interface to notify caller of success or failure of user operations.
      */
-    public void registerUser(User user){
-        usersRef.document(user.getEmail())
-                .set(user);
-        UiUtils.showNotification(context, "Success", "User registered successfully;");
+    public interface UserCallback {
+        void onSuccess();
+        void onError(String message);
+
     }
 
     /**
-     * Verifies whether the information for the user meets the requirements, before passing it along to be registered
-     * @param user User object to be verified
+     * Register a new user in Firestore.
+     * @param user the User object to save
+     * Note: this method does not do any validation — assumes the caller already checked that.
      */
-    public void checkUser(User user){
+
+    public void registerUser(User user){
+        usersRef.document()
+                .set(user);
+       // UiUtils.showNotification(context, "Success", "User registered successfully;");
+    }
+
+    /**
+     * Check if a user can be registered (all fields filled and email not already taken).
+     * If everything is good, calls registerUser.
+     * @param user the User object to check and possibly register
+     * @param callback callback interface to handle success or errors
+     */
+    public void checkUser(User user, UserCallback callback){
         if (user.getName().equals("") || user.getPassword().equals("") || user.getEmail().equals("")) {
-            UiUtils.showNotification(context, "Error", "Do not leave any fields empty");
+            callback.onError("Do not leave any fields empty");
         } else {
-             usersRef.whereEqualTo("email", user.getEmail())
+            usersRef.whereEqualTo("email", user.getEmail())
                     .get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if (task.isSuccessful()) {
                                 if (!task.getResult().isEmpty()) {
-                                    UiUtils.showNotification(context, "Error", "This email has already been registered");
+                                    callback.onError("This email has already been registered");
                                 } else {
                                     registerUser(user);
+                                    callback.onSuccess();
                                 }
+                            } else {
+                                callback.onError("Error accessing database");
                             }
                         }
                     });
