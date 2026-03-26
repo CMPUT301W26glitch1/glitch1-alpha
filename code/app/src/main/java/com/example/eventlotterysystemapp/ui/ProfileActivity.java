@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserSession;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileActivity extends AppCompatActivity {
     EditText etName, etEmail, etPhone;
@@ -27,19 +30,40 @@ public class ProfileActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPhone = findViewById(R.id.etPhone);
 
+        //Gets current user and preloads their info into text boxes
         user = UserSession.getUser();
+        etName.setText(user.getName());
+        etEmail.setText(user.getEmail());
+        etPhone.setText(user.getPhoneNumber());
+
         //save button ---> goes back to event list
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 user.setName(etName.getText().toString());
-                user.setEmail(etName.getText().toString());
-                user.setPhoneNumber(etName.getText().toString());
+                user.setEmail(etEmail.getText().toString());
+                user.setPhoneNumber(Integer.parseInt(etPhone.getText().toString()));
 
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
-                startActivity(intent);
+                db.collection("users")
+                        .document(user.getName()) // using name as ID
+                        .set(user)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+
             }
 
         });
