@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -29,23 +30,20 @@ import java.util.Calendar;
  */
 public class CreateEventActivity extends AppCompatActivity {
     private String organizerEmail;
-    private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace;
+    private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace, listLimit;
     private Switch geoSwitch;
     private Button nextBtn;
     private EventController eventController;
     private ImageView eventPoster;
     private Button selectImageBtn;
-    private Uri selectedImageUri; // Stores the local image path
+    private Uri selectedImageUri;
 
-    // Store selected times
     private LocalDateTime selectedEventTime, selectedRegStart, selectedRegEnd;
 
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
                 if (uri != null) {
-                    // User selected an image, set it to  ImageView
                     eventPoster.setImageURI(uri);
-                    // Store the URI in a variable so it can be uploaded later
                     selectedImageUri = uri;
                 }
             });
@@ -56,10 +54,8 @@ public class CreateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_event);
 
         organizerEmail = getIntent().getStringExtra("USER_EMAIL");
-
         eventController = new EventController(this);
 
-        // Bind views
         eventTitle = findViewById(R.id.eventTitle);
         eventDescription = findViewById(R.id.eventDescription);
         category = findViewById(R.id.eventCategory);
@@ -70,15 +66,15 @@ public class CreateEventActivity extends AppCompatActivity {
         geoSwitch = findViewById(R.id.geoLocation);
         nextBtn = findViewById(R.id.nextBtn);
         eventPoster = findViewById(R.id.eventPoster);
+        listLimit = findViewById(R.id.listLimit); // Reference to the capacity field
         selectImageBtn = findViewById(R.id.selectImageBtn);
+
         selectImageBtn.setOnClickListener(v -> {
-            // Launch the photo picker
             pickMedia.launch(new PickVisualMediaRequest.Builder()
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                     .build());
         });
 
-        // Set up pickers
         setupDateTimePicker(eventTime, dt -> selectedEventTime = dt);
         setupDateTimePicker(regStart, dt -> selectedRegStart = dt);
         setupDateTimePicker(regEnd, dt -> selectedRegEnd = dt);
@@ -86,11 +82,22 @@ public class CreateEventActivity extends AppCompatActivity {
         nextBtn.setOnClickListener(v -> saveEvent());
     }
 
-    /**
-     * Saves event to firestore database
-     */
     private void saveEvent() {
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // Logic to handle the participant limit
+        String limitStr = listLimit.getText().toString().trim();
+        int finalLimit;
+
+        if (limitStr.isEmpty()) {
+            // No value entered = Unlimited
+            finalLimit = Integer.MAX_VALUE;
+        } else {
+            try {
+                finalLimit = Integer.parseInt(limitStr);
+            } catch (NumberFormatException e) {
+                // Fallback for invalid input
+                finalLimit = Integer.MAX_VALUE;
+            }
+        }
 
         Event event = new Event(
                 eventTitle.getText().toString(),
@@ -102,24 +109,19 @@ public class CreateEventActivity extends AppCompatActivity {
                 selectedRegEnd,
                 geoSwitch.isChecked(),
                 organizerEmail,
-                null
+                null,
+                finalLimit // Passing the limit to the updated constructor
         );
 
-        // Save Event to Firestore first
         eventController.addEvent(event, docRef -> {
             String eventId = docRef.getId();
-
             event.setEventId(eventId);
             docRef.update("eventId", eventId);
 
-            // If an image was selected, upload it
             if (selectedImageUri != null) {
                 StorageController storageController = new StorageController();
                 storageController.uploadPoster(eventId, selectedImageUri, downloadUrl -> {
-                    // Once uploaded, update the event with the photo URL
                     docRef.update("posterUrl", downloadUrl);
-
-                    // Now navigate
                     navigateToQR(eventId);
                 });
             } else {
@@ -128,11 +130,6 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-
-    /**
-     * Moves to the QR Code screen for newly created event
-     * @param eventId Id of created event
-     */
     private void navigateToQR(String eventId) {
         Intent intent = new Intent(this, QRCodeActivity.class);
         intent.putExtra("EVENT_ID", eventId);
@@ -140,28 +137,22 @@ public class CreateEventActivity extends AppCompatActivity {
         finish();
     }
 
-
-    /**
-     * Helper to open Date and Time pickers sequentially
-     * @param editText The text field for the Date/Time
-     * @param callback callback implementation to receive the resulting LocalDateTime object
-     */
     private void setupDateTimePicker(EditText editText, DateTimeCallback callback) {
+        // Prevent keyboard from opening on date/time fields
+        editText.setFocusable(false);
         editText.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             new DatePickerDialog(this, (view, year, month, day) -> {
                 new TimePickerDialog(this, (view1, hour, minute) -> {
                     LocalDateTime ldt = LocalDateTime.of(year, month + 1, day, hour, minute);
-                    editText.setText(ldt.toString());
+                    // Simple formatting for visibility
+                    editText.setText(year + "-" + (month + 1) + "-" + day + " " + hour + ":" + minute);
                     callback.onDateTimeSelected(ldt);
                 }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
             }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
         });
     }
 
-    /**
-     * Callback interface to be invoked when a user completes a date and time selection.
-     */
     private interface DateTimeCallback {
         void onDateTimeSelected(LocalDateTime ldt);
     }
