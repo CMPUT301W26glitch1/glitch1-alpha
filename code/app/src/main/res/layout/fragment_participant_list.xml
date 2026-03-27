@@ -29,4 +29,12 @@
         android:text="Run Lottery Drawing"
         android:visibility="gone" />
 
+    <Button
+        android:id="@+id/btnNotify"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Send Notification"
+        android:visibility="gone"/>
+
 </RelativeLayout>

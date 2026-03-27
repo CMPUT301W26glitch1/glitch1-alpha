@@ -32,7 +32,7 @@ public class QRCodeActivity extends AppCompatActivity {
         String eventId = getIntent().getStringExtra("EVENT_ID");
 
         if (eventId != null) {
-            generateQRCode(eventId);
+            generateQRCode("Event_ID:" + eventId);
         }
 
         returnBtn.setOnClickListener(v -> finish());
