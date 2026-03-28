@@ -28,8 +28,7 @@ public class Event {
 
     public Event(String name, String description, String category, String location,
                  LocalDateTime dateTime, LocalDateTime regStart, LocalDateTime regEnd,
-                 boolean geolocationReq, String organizerId, String posterUrl, int listLimit) {
-                 boolean geolocationReq, String organizerId, String posterUrl, boolean isPrivate) {
+                 boolean geolocationReq, String organizerId, String posterUrl, int listLimit, boolean isPrivate) {
         this.name = name;
         this.description = description;
         this.category = category;

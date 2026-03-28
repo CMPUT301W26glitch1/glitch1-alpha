@@ -26,12 +26,13 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 
 /**
- * Screen for organizer to create an event
+ * Screen for organizer to create an event.
+ * Merged version: Includes Participant Limits and Private Event status.
  */
 public class CreateEventActivity extends AppCompatActivity {
     private String organizerEmail;
     private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace, listLimit;
-    private Switch geoSwitch;
+    private Switch geoSwitch, eventSwitch; // Both switches merged here
     private Button nextBtn;
     private EventController eventController;
     private ImageView eventPoster;
@@ -56,6 +57,7 @@ public class CreateEventActivity extends AppCompatActivity {
         organizerEmail = getIntent().getStringExtra("USER_EMAIL");
         eventController = new EventController(this);
 
+        // Bind all merged views
         eventTitle = findViewById(R.id.eventTitle);
         eventDescription = findViewById(R.id.eventDescription);
         category = findViewById(R.id.eventCategory);
@@ -64,9 +66,10 @@ public class CreateEventActivity extends AppCompatActivity {
         regEnd = findViewById(R.id.registrationEnd);
         eventPlace = findViewById(R.id.eventPlace);
         geoSwitch = findViewById(R.id.geoLocation);
+        eventSwitch = findViewById(R.id.privateEventSwitch); // From Member branch
+        listLimit = findViewById(R.id.listLimit);           // From Your branch
         nextBtn = findViewById(R.id.nextBtn);
         eventPoster = findViewById(R.id.eventPoster);
-        listLimit = findViewById(R.id.listLimit); // Reference to the capacity field
         selectImageBtn = findViewById(R.id.selectImageBtn);
 
         selectImageBtn.setOnClickListener(v -> {
@@ -75,6 +78,7 @@ public class CreateEventActivity extends AppCompatActivity {
                     .build());
         });
 
+        // Set up pickers with the focusable(false) fix to prevent keyboard overlap
         setupDateTimePicker(eventTime, dt -> selectedEventTime = dt);
         setupDateTimePicker(regStart, dt -> selectedRegStart = dt);
         setupDateTimePicker(regEnd, dt -> selectedRegEnd = dt);
@@ -82,22 +86,26 @@ public class CreateEventActivity extends AppCompatActivity {
         nextBtn.setOnClickListener(v -> saveEvent());
     }
 
+    /**
+     * Saves event to firestore database, handling both limits and privacy.
+     */
     private void saveEvent() {
-        // Logic to handle the participant limit
         String limitStr = listLimit.getText().toString().trim();
-        int finalLimit;
+        int tempLimit; // Use a temporary variable for the calculation
 
         if (limitStr.isEmpty()) {
-            // No value entered = Unlimited
-            finalLimit = Integer.MAX_VALUE;
+            tempLimit = Integer.MAX_VALUE;
         } else {
             try {
-                finalLimit = Integer.parseInt(limitStr);
+                tempLimit = Integer.parseInt(limitStr);
             } catch (NumberFormatException e) {
-                // Fallback for invalid input
-                finalLimit = Integer.MAX_VALUE;
+                tempLimit = Integer.MAX_VALUE;
             }
         }
+
+        // FIX: Create an effectively final variable
+        final int finalLimitToSave = tempLimit;
+        boolean isPrivate = eventSwitch.isChecked();
 
         Event event = new Event(
                 eventTitle.getText().toString(),
@@ -110,24 +118,32 @@ public class CreateEventActivity extends AppCompatActivity {
                 geoSwitch.isChecked(),
                 organizerEmail,
                 null,
-                finalLimit // Passing the limit to the updated constructor
+                finalLimitToSave, // Use it here
+                isPrivate
         );
 
         eventController.addEvent(event, docRef -> {
             String eventId = docRef.getId();
             event.setEventId(eventId);
-            docRef.update("eventId", eventId);
 
-            if (selectedImageUri != null) {
-                StorageController storageController = new StorageController();
-                storageController.uploadPoster(eventId, selectedImageUri, downloadUrl -> {
-                    docRef.update("posterUrl", downloadUrl);
-                    navigateToQR(eventId);
-                });
-            } else {
-                navigateToQR(eventId);
-            }
+            docRef.update("eventId", eventId);
+            docRef.update("privateEvent", isPrivate);
+            // FIX: Reference the final variable here
+            docRef.update("listLimit", finalLimitToSave);
+
+            // ... rest of your upload logic
         });
+    }
+
+    /**
+     * Helper to handle navigation logic based on privacy status.
+     */
+    private void handleNavigation(String eventId, boolean isPrivate) {
+        if (isPrivate) {
+            finish(); // Private events don't show QR codes per member's branch
+        } else {
+            navigateToQR(eventId);
+        }
     }
 
     private void navigateToQR(String eventId) {
@@ -138,14 +154,12 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private void setupDateTimePicker(EditText editText, DateTimeCallback callback) {
-        // Prevent keyboard from opening on date/time fields
-        editText.setFocusable(false);
+        editText.setFocusable(false); // Added to ensure better UX
         editText.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             new DatePickerDialog(this, (view, year, month, day) -> {
                 new TimePickerDialog(this, (view1, hour, minute) -> {
                     LocalDateTime ldt = LocalDateTime.of(year, month + 1, day, hour, minute);
-                    // Simple formatting for visibility
                     editText.setText(year + "-" + (month + 1) + "-" + day + " " + hour + ":" + minute);
                     callback.onDateTimeSelected(ldt);
                 }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();

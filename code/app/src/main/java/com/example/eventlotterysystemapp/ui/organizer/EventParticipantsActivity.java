@@ -1,7 +1,10 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
-import android.os.Bundle;
+import static java.security.AccessController.getContext;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 import com.example.eventlotterysystemapp.R;
@@ -9,10 +12,6 @@ import com.example.eventlotterysystemapp.data.models.ParticipantPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-/**
- * View to show the list of participants for an event.
- * Split into three tabs for waitlist, selected and cancelled participants
- */
 public class EventParticipantsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,10 +20,22 @@ public class EventParticipantsActivity extends AppCompatActivity {
 
         String eventId = getIntent().getStringExtra("EVENT_ID");
 
+        // Initialize Buttons
+        Button btnReturn = findViewById(R.id.btnReturn);
+        Button btnNotifyTop = findViewById(R.id.btnNotifyTop);
+
+        // Simple finish() to go back to OrganizerMainActivity
+        btnReturn.setOnClickListener(v -> finish());
+
+        btnNotifyTop.setOnClickListener(v -> {
+            Intent intent = new Intent(EventParticipantsActivity.this, NotificationActivity.class);
+            intent.putExtra("EVENT_ID", eventId);
+            startActivity(intent);
+        });
+
         ViewPager2 viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
-        // The adapter for the 3 tabs
         ParticipantPagerAdapter adapter = new ParticipantPagerAdapter(this, eventId);
         viewPager.setAdapter(adapter);
 
@@ -36,6 +47,4 @@ public class EventParticipantsActivity extends AppCompatActivity {
             }
         }).attach();
     }
-
-
 }

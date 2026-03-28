@@ -27,8 +27,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Fragment for EventParticipantsActivity that lists the participants of an event.
- * Includes functionality to display event capacity and run a random lottery drawing.
+ * Fragment that lists participants.
+ * Handles lottery drawing logic only when the 'waitlist' status is active.
  */
 public class ParticipantListFragment extends Fragment {
     private String eventId, status;
@@ -57,67 +57,39 @@ public class ParticipantListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Retrieve arguments passed from the Activity
         if (getArguments() != null) {
             eventId = getArguments().getString("eId");
             status = getArguments().getString("stat");
         }
 
-        // Initialize UI components
         tvCapacity = view.findViewById(R.id.tvCapacity);
         lotteryBtn = view.findViewById(R.id.btnLottery);
         recyclerView = view.findViewById(R.id.participantRecyclerView);
 
-        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ParticipantAdapter(participantList);
         recyclerView.setAdapter(adapter);
 
-        // 1. Fetch Event Capacity to display at the top
-        fetchEventCapacity();
-
-        // 2. Setup Lottery Button Logic (Only visible in Waitlist tab)
-        setupLotteryButton();
-
-        // 3. Setup real-time listener for the participant list
+        setupTabLogic();
         listenForParticipants();
     }
 
-    /**
-     * Fetches the listLimit from the event document to update the UI.
-     */
-    private void fetchEventCapacity() {
-        FirebaseFirestore.getInstance().collection("events")
-                .document(eventId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (isAdded() && documentSnapshot.exists()) {
-                        Long limit = documentSnapshot.getLong("listLimit");
-
-                        // If limit is null, display "Unlimited"
-                        String limitText = (limit != null) ? limit.toString() : "Unlimited";
-                        tvCapacity.setText("Max Participants: " + limitText);
-                    }
-                });
-    }
-
-    /**
-     * Configures the visibility and click behavior of the lottery button.
-     */
-    private void setupLotteryButton() {
+    private void setupTabLogic() {
         if ("waitlist".equals(status)) {
             lotteryBtn.setVisibility(View.VISIBLE);
+            tvCapacity.setVisibility(View.VISIBLE);
+            fetchEventCapacity();
+
             lotteryBtn.setOnClickListener(v -> {
                 FirebaseFirestore.getInstance().collection("events")
                         .document(eventId)
                         .get()
                         .addOnSuccessListener(documentSnapshot -> {
-                            Long limit = documentSnapshot.getLong("listLimit");
-
-                            // Use Integer.MAX_VALUE if limit is null to pick everyone
-                            int winnersToPick = (limit != null) ? limit.intValue() : Integer.MAX_VALUE;
-
-                            runLottery(winnersToPick);
+                            if (documentSnapshot.exists()) {
+                                Long limit = documentSnapshot.getLong("listLimit");
+                                int winnersToPick = (limit != null) ? limit.intValue() : Integer.MAX_VALUE;
+                                runLottery(winnersToPick);
+                            }
                         });
             });
         } else {
@@ -126,9 +98,19 @@ public class ParticipantListFragment extends Fragment {
         }
     }
 
-    /**
-     * Attaches a snapshot listener to keep the participant list updated in real-time.
-     */
+    private void fetchEventCapacity() {
+        FirebaseFirestore.getInstance().collection("events")
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (isAdded() && documentSnapshot.exists()) {
+                        Long limit = documentSnapshot.getLong("listLimit");
+                        String limitText = (limit != null) ? limit.toString() : "Unlimited";
+                        tvCapacity.setText("Max Participants: " + limitText);
+                    }
+                });
+    }
+
     private void listenForParticipants() {
         FirebaseFirestore.getInstance().collection("events")
                 .document(eventId).collection("participants")
@@ -147,21 +129,15 @@ public class ParticipantListFragment extends Fragment {
                 });
     }
 
-    /**
-     * Randomly selects participants from the current list and updates their status in Firestore.
-     * @param numberOfWinners The maximum number of participants to select.
-     */
     private void runLottery(int numberOfWinners) {
         if (participantList.isEmpty()) {
             Toast.makeText(getContext(), "Waitlist is empty!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Shuffle the list to ensure the selection is random
         List<Participant> shuffledList = new ArrayList<>(participantList);
         Collections.shuffle(shuffledList);
 
-        // Determine how many people to pick based on available capacity
         int actualWinners = Math.min(numberOfWinners, shuffledList.size());
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         WriteBatch batch = db.batch();
@@ -173,12 +149,11 @@ public class ParticipantListFragment extends Fragment {
                     .collection("participants")
                     .document(winner.getEmail());
 
-            // Change status to 'selected'; real-time listeners will handle UI moves
             batch.update(ref, "status", "selected");
         }
 
         batch.commit().addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Lottery complete! " + actualWinners + " selected.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Lottery complete!", Toast.LENGTH_SHORT).show();
             lotteryBtn.setEnabled(false);
             lotteryBtn.setText("Lottery Completed");
         }).addOnFailureListener(e -> {
