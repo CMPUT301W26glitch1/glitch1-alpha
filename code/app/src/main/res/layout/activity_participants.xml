@@ -1,14 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:fitsSystemWindows="true"> <com.google.android.material.tabs.TabLayout
-    android:id="@+id/tabLayout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?attr/colorPrimary"
-    android:elevation="4dp" />
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="?attr/colorPrimary">
+
+        <Button
+            android:id="@+id/btnReturn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Back"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/buttonColor" />
+
+        <Button
+            android:id="@+id/btnNotifyTop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:layout_marginStart="4dp"
+            android:text="Send Notification"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/buttonColor" />
+    </LinearLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:tabTextColor="@android:color/white"
+        app:tabSelectedTextColor="@android:color/white"
+        android:elevation="4dp"
+        android:backgroundTint="@color/tabColor"/>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

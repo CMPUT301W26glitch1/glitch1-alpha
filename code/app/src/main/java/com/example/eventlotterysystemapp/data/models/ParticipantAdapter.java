@@ -36,21 +36,24 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
         holder.name.setText("Loading...");
         holder.email.setText(p.getEmail());
 
-        // Fetch real user name from the main "users" collection
-        // Note: Using document ID directly because UserController uses email as the ID
         FirebaseFirestore.getInstance().collection("users")
-                .document(p.getEmail())
+                .whereEqualTo("email", p.getEmail()) // Look for the email field
                 .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String name = doc.getString("name");
-                        // Ensure we are still binding to the correct position after the async call
-                        if (holder.getBindingAdapterPosition() == position) {
-                            holder.name.setText(name != null ? name : "Unknown User");
-                        }
+                .addOnSuccessListener(querySnapshot -> {
+                    if (holder.getBindingAdapterPosition() != position) return;
+
+                    if (!querySnapshot.isEmpty()) {
+                        String name = querySnapshot.getDocuments().get(0).getString("name");
+                        holder.name.setText(name != null ? name : "Unknown User");
+                    } else {
+                        holder.name.setText("User Not Found");
                     }
                 })
-                .addOnFailureListener(e -> holder.name.setText("Error loading name"));
+                .addOnFailureListener(e -> {
+                    if (holder.getBindingAdapterPosition() == position) {
+                        holder.name.setText("Error loading name");
+                    }
+                });
     }
 
     @Override
