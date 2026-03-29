@@ -78,7 +78,6 @@ public class CreateEventActivity extends AppCompatActivity {
                     .build());
         });
 
-        // Set up pickers with the focusable(false) fix to prevent keyboard overlap
         setupDateTimePicker(eventTime, dt -> selectedEventTime = dt);
         setupDateTimePicker(regStart, dt -> selectedRegStart = dt);
         setupDateTimePicker(regEnd, dt -> selectedRegEnd = dt);
@@ -87,26 +86,27 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     /**
-     * Saves event to firestore database, handling both limits and privacy.
+     * Saves event to Firestore, handles image upload, limits, and privacy settings.
      */
     private void saveEvent() {
+        // Logic to handle the participant limit
         String limitStr = listLimit.getText().toString().trim();
-        int tempLimit; // Use a temporary variable for the calculation
+        int finalLimit;
 
         if (limitStr.isEmpty()) {
-            tempLimit = Integer.MAX_VALUE;
+            finalLimit = Integer.MAX_VALUE; // Unlimited
         } else {
             try {
-                tempLimit = Integer.parseInt(limitStr);
+                finalLimit = Integer.parseInt(limitStr);
             } catch (NumberFormatException e) {
-                tempLimit = Integer.MAX_VALUE;
+                finalLimit = Integer.MAX_VALUE;
             }
         }
 
-        // FIX: Create an effectively final variable
-        final int finalLimitToSave = tempLimit;
+        final int finalLimitToSave = finalLimit;
         boolean isPrivate = eventSwitch.isChecked();
 
+        // Create Event Object
         Event event = new Event(
                 eventTitle.getText().toString(),
                 eventDescription.getText().toString(),
@@ -117,21 +117,37 @@ public class CreateEventActivity extends AppCompatActivity {
                 selectedRegEnd,
                 geoSwitch.isChecked(),
                 organizerEmail,
-                null,
-                finalLimitToSave, // Use it here
+                null, // posterUrl starts as null
+                finalLimitToSave,
                 isPrivate
         );
 
+        // Save to Firestore
         eventController.addEvent(event, docRef -> {
             String eventId = docRef.getId();
             event.setEventId(eventId);
 
+            // Update document with its own ID and the extra fields
             docRef.update("eventId", eventId);
             docRef.update("privateEvent", isPrivate);
-            // FIX: Reference the final variable here
             docRef.update("listLimit", finalLimitToSave);
 
-            // ... rest of your upload logic
+            // Handle Image Upload if a poster was selected
+            if (selectedImageUri != null) {
+                StorageController storageController = new StorageController();
+                storageController.uploadPoster(eventId, selectedImageUri, downloadUrl -> {
+                    // Update Firestore with the new download URL from Firebase Storage
+                    docRef.update("posterUrl", downloadUrl)
+                            .addOnSuccessListener(aVoid -> navigateToQR(eventId))
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(CreateEventActivity.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                navigateToQR(eventId);
+                            });
+                });
+            } else {
+                navigateToQR(eventId);
+            }
         });
     }
 
@@ -140,7 +156,7 @@ public class CreateEventActivity extends AppCompatActivity {
      */
     private void handleNavigation(String eventId, boolean isPrivate) {
         if (isPrivate) {
-            finish(); // Private events don't show QR codes per member's branch
+            finish();
         } else {
             navigateToQR(eventId);
         }
