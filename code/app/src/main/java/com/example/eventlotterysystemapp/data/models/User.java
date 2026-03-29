@@ -55,8 +55,8 @@ public class User {
     }
 
     public String getPhoneNumber(){return phoneNumber.toString();}
-    public void setPhoneNumber(String phone) {
-        this.phoneNumber = phoneNumber;
+    public void setPhoneNumber(Integer phone) {
+        this.phoneNumber = phone;
     }
 
 
