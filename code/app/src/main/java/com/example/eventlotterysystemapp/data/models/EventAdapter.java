@@ -51,6 +51,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         holder.btnQR.setOnClickListener(v -> {
             Intent intent = new Intent(context, QRCodeActivity.class);
             intent.putExtra("EVENT_ID", event.getEventId());
+            intent.putExtra("IS_PRIVATE", event.isPrivate());
             context.startActivity(intent);
         });
 

@@ -138,15 +138,15 @@ public class CreateEventActivity extends AppCompatActivity {
                 storageController.uploadPoster(eventId, selectedImageUri, downloadUrl -> {
                     // Update Firestore with the new download URL from Firebase Storage
                     docRef.update("posterUrl", downloadUrl)
-                            .addOnSuccessListener(aVoid -> navigateToQR(eventId))
+                            .addOnSuccessListener(aVoid -> navigateToQR(eventId, isPrivate))
                             .addOnFailureListener(e -> {
                                 Toast.makeText(CreateEventActivity.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
-                                navigateToQR(eventId);
+                                navigateToQR(eventId, isPrivate);
                             });
                 });
             } else {
-                navigateToQR(eventId);
+                navigateToQR(eventId, isPrivate);
             }
         });
     }
@@ -158,13 +158,14 @@ public class CreateEventActivity extends AppCompatActivity {
         if (isPrivate) {
             finish();
         } else {
-            navigateToQR(eventId);
+            navigateToQR(eventId, isPrivate);
         }
     }
 
-    private void navigateToQR(String eventId) {
+    private void navigateToQR(String eventId, boolean isPrivate) {
         Intent intent = new Intent(this, QRCodeActivity.class);
         intent.putExtra("EVENT_ID", eventId);
+        intent.putExtra("IS_PRIVATE", isPrivate);
         startActivity(intent);
         finish();
     }
