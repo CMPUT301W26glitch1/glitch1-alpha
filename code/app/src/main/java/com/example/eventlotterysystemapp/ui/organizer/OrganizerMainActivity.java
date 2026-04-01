@@ -104,13 +104,23 @@ public class OrganizerMainActivity extends AppCompatActivity {
 
         // We only need email and status here
         String testEmail = "test1@gmail.com";
+        String testEmail1 = "org3@test.com";
         Participant testParticipant = new Participant(testEmail, "waitlist");
+        Participant testParticipant1 = new Participant(testEmail1, "enrolled");
 
         db.collection("events")
                 .document(eventId)
                 .collection("participants")
                 .document(testEmail) // Unique ID
                 .set(testParticipant)
+                .addOnSuccessListener(aVoid -> {
+                });
+
+        db.collection("events")
+                .document(eventId)
+                .collection("participants")
+                .document(testEmail1)
+                .set(testParticipant1)
                 .addOnSuccessListener(aVoid -> {
                 });
     }
