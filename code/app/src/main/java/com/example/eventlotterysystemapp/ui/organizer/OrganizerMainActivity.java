@@ -15,6 +15,8 @@ import com.example.eventlotterysystemapp.data.models.Participant;
 import com.example.eventlotterysystemapp.ui.LoginActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,25 +75,37 @@ public class OrganizerMainActivity extends AppCompatActivity {
     private void loadEvents() {
         if (loggedInUserEmail == null) return;
 
-        // addSnapshotListener keeps the UI in sync with the database automatically
-        FirebaseFirestore.getInstance().collection("events")
-                .whereEqualTo("organizerId", loggedInUserEmail)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Toast.makeText(this, "Failed to load events: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                    eventList.clear(); // Clear old data
-                    if (value != null) {
-                        for (QueryDocumentSnapshot document : value) {
-                            Event event = document.toObject(Event.class);
-                            event.setEventId(document.getId());
-                            eventList.add(event);
-                            addTestParticipant(event.getEventId());
-                        }
+        db.collection("users")
+                .whereEqualTo("email", loggedInUserEmail)
+                .get()
+                .addOnSuccessListener(userQuery -> {
+                    if (!userQuery.isEmpty()) {
+                        String userDocRefId = userQuery.getDocuments().get(0).getId();
+
+                        db.collection("events")
+                                .whereEqualTo("organizerId", userDocRefId)
+                                .addSnapshotListener((value, error) -> {
+                                    if (error != null) {
+                                        Toast.makeText(this, "Load failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    eventList.clear();
+                                    if (value != null) {
+                                        for (QueryDocumentSnapshot document : value) {
+                                            Event event = document.toObject(Event.class);
+                                            event.setEventId(document.getId());
+                                            eventList.add(event);
+                                            addTestParticipant(event.getEventId());
+                                        }
+                                    }
+                                    adapter.notifyDataSetChanged();
+                                });
+                    } else {
+                        Toast.makeText(this, "User record not found for " + loggedInUserEmail, Toast.LENGTH_SHORT).show();
                     }
-                    adapter.notifyDataSetChanged(); // Refresh the list
                 });
     }
 
