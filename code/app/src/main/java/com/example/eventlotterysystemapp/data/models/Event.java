@@ -21,12 +21,14 @@ public class Event {
     private LocalDateTime regEnd;
     private boolean geolocationReq;
     private String posterUrl;
+    private int listLimit;
+    private boolean privateEvent;
 
     public Event() {}
 
     public Event(String name, String description, String category, String location,
                  LocalDateTime dateTime, LocalDateTime regStart, LocalDateTime regEnd,
-                 boolean geolocationReq, String organizerId, String posterUrl) {
+                 boolean geolocationReq, String organizerId, String posterUrl, int listLimit, boolean isPrivate) {
         this.name = name;
         this.description = description;
         this.category = category;
@@ -37,6 +39,8 @@ public class Event {
         this.geolocationReq = geolocationReq;
         this.organizerId = organizerId;
         this.posterUrl = posterUrl;
+        this.listLimit = listLimit;
+        this.privateEvent = isPrivate;
     }
 
     // --- Standard Getters/Setters ---
@@ -56,6 +60,11 @@ public class Event {
     public void setGeolocationReq(boolean geolocationReq) { this.geolocationReq = geolocationReq; }
     public String getPosterUrl() { return posterUrl; }
     public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public int getListLimit() { return listLimit; }
+    public void setListLimit(int listLimit) { this.listLimit = listLimit; }
+
+    public boolean isPrivate() { return privateEvent; }
+    public void setPrivate(boolean privateEvent) { this.privateEvent = privateEvent; }
 
     // --- LocalDateTime Logic for Firestore ---
 

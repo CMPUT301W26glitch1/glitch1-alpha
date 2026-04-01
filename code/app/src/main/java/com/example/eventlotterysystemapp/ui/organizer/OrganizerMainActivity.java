@@ -2,6 +2,8 @@ package com.example.eventlotterysystemapp.ui.organizer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,6 +12,7 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
 import com.example.eventlotterysystemapp.data.models.EventAdapter;
 import com.example.eventlotterysystemapp.data.models.Participant;
+import com.example.eventlotterysystemapp.ui.LoginActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
     private EventAdapter adapter;
     private List<Event> eventList;
     private String loggedInUserEmail;
+    private Button btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +42,12 @@ public class OrganizerMainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        btnLogout = findViewById(R.id.btnLogout);
+
         eventList = new ArrayList<>();
         adapter = new EventAdapter(this, eventList);
         recyclerView.setAdapter(adapter);
 
-        // Testing participants
-        // addTestParticipant("qF6q2EXnqPtoghTxscIV");
         // Load data in real-time
         loadEvents();
 
@@ -51,6 +55,15 @@ public class OrganizerMainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, CreateEventActivity.class);
             intent.putExtra("USER_EMAIL", loggedInUserEmail);
             startActivity(intent);
+        });
+
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(OrganizerMainActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
         });
     }
 
@@ -75,6 +88,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                             Event event = document.toObject(Event.class);
                             event.setEventId(document.getId());
                             eventList.add(event);
+                            addTestParticipant(event.getEventId());
                         }
                     }
                     adapter.notifyDataSetChanged(); // Refresh the list
@@ -89,7 +103,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // We only need email and status here
-        String testEmail = "john@example.com";
+        String testEmail = "test1@gmail.com";
         Participant testParticipant = new Participant(testEmail, "waitlist");
 
         db.collection("events")

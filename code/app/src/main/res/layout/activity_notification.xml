@@ -1,27 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="10dp">
+    android:orientation="vertical"
+    android:background="#EDEDED">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send Notifications"
-        android:textSize="35sp"
-        android:textStyle="bold"/>
-
-    <ListView
-        android:id="@+id/selectedUsers"
+        android:id="@+id/NotificationHeader"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"/>
+        android:layout_height="wrap_content"
+        android:background="#05055F"
+        android:padding="16dp"
+        android:text="Notification"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/sendNotificationBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:text="Send Notification"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#7FE3E5"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/eventName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Event"
+            android:layout_weight="1"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/BtnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="#F7F7F7"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/notificationTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Organizer Notification"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/notificationMessage"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="12dp"
+            android:background="@android:drawable/edit_text"
+            android:gravity="top|start"
+            android:hint="Enter notification message"
+            android:inputType="textMultiLine"
+            android:padding="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/SendTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send To:"
+                android:textSize="18sp" />
+
+            <Spinner
+                android:id="@+id/spinnerSendTo"
+                android:layout_width="220dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="20dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/sendNotificationBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
+            android:text="Send" />
+    </LinearLayout>
 
 </LinearLayout>

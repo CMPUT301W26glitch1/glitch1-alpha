@@ -111,6 +111,13 @@
             android:text="Require Geolocation"
             android:textSize="20sp"/>
 
+        <Switch
+            android:id="@+id/privateEventSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Private Event"
+            android:textSize="20sp"/>
+
         <Button
             android:id="@+id/nextBtn"
             android:layout_width="wrap_content"
