@@ -44,6 +44,7 @@ public class EventParticipantsActivity extends AppCompatActivity {
                 case 0: tab.setText("Waitlist"); break;
                 case 1: tab.setText("Selected"); break;
                 case 2: tab.setText("Cancelled"); break;
+                case 3: tab.setText("Enrolled"); break;
             }
         }).attach();
     }
