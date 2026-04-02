@@ -67,7 +67,12 @@ public class ParticipantListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.participantRecyclerView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ParticipantAdapter(participantList);
+
+        boolean cancelBtn = false;
+        if (status.equals("selected")) {
+            cancelBtn = true;
+        }
+        adapter = new ParticipantAdapter(participantList, cancelBtn, eventId);
         recyclerView.setAdapter(adapter);
 
         setupTabLogic();

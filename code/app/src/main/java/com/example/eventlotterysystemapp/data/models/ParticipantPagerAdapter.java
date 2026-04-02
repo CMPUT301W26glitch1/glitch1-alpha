@@ -19,11 +19,11 @@ public class ParticipantPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public Fragment createFragment(int position) {
-        String status = (position == 0) ? "waitlist" : (position == 1) ? "selected" : "cancelled";
+        String status = (position == 0) ? "waitlist" : (position == 1) ? "selected" : (position == 2) ? "cancelled" : "enrolled";
         // Pass the eventId and status to the fragment
         return ParticipantListFragment.newInstance(eventId, status);
     }
 
     @Override
-    public int getItemCount() { return 3; }
+    public int getItemCount() { return 4; }
 }
