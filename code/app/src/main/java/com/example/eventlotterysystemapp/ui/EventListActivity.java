@@ -15,7 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
+import com.example.eventlotterysystemapp.data.models.NotificationManager;
 import com.example.eventlotterysystemapp.data.models.EntrantEventAdapter; // Ensure this import matches your project
+import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -34,6 +36,7 @@ public class EventListActivity extends AppCompatActivity {
     private ArrayList<Event> filteredEvents;
     private EntrantEventAdapter adapter;
     private FirebaseFirestore db;
+    private String loggedInUserEmail;
 
     private static final int FILTER_REQUEST_CODE = 200;
 
@@ -42,6 +45,7 @@ public class EventListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
+        loggedInUserEmail = getIntent().getStringExtra("USER_EMAIL");
         // 1. Initialize UI
         eventRecyclerView = findViewById(R.id.eventRecyclerView);
         searchView = findViewById(R.id.searchEvents);
@@ -52,6 +56,13 @@ public class EventListActivity extends AppCompatActivity {
         ivMainOptions = findViewById(R.id.ivMainOptions);
 
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        fabNotifications.setOnClickListener(v -> {
+            // sendTestNotification();
+            Intent intent = new Intent(EventListActivity.this, EntrantNotificationListActivity.class);
+            intent.putExtra("USER_EMAIL", loggedInUserEmail);
+            startActivity(intent);
+        });
 
         // 2. Data setup
         allEvents = new ArrayList<>();
@@ -204,5 +215,28 @@ private void resetFilters() {
         if (filteredEvents.isEmpty()) {
             Toast.makeText(this, "No events match those filters", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Temporary test method to verify notification delivery and UI display.
+     * This simulates an organizer sending a lottery win notification.
+     */
+    private void sendTestNotification() {
+        NotificationManager authNotifManager = new NotificationManager();
+
+        String testRecipientId = "aqNQJhYDIfcfmj7PJKsY";
+        String testEmail = "ent1@gmail.com";
+        String testEventId = "3KwaMPf8RTLFs4cspVib";
+        String message = "Congratulations! You have been selected for the 'Annual Tech Gala'. Please accept or decline within 24 hours.";
+
+        authNotifManager.sendNotification(
+                testRecipientId,
+                testEmail,
+                message,
+                "LOTTERY_WIN",
+                testEventId
+        );
+
+        Toast.makeText(this, "Test Notification Sent!", Toast.LENGTH_SHORT).show();
     }
 }
