@@ -5,6 +5,8 @@ import com.google.firebase.firestore.PropertyName;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Event class to store information of an event
@@ -24,7 +26,10 @@ public class Event {
     private int listLimit;
     private boolean privateEvent;
 
-    public Event() {}
+    private List<String> participants = new ArrayList<>();
+
+    public Event() {
+    }
 
     public Event(String name, String description, String category, String location,
                  LocalDateTime dateTime, LocalDateTime regStart, LocalDateTime regEnd,
@@ -44,27 +49,100 @@ public class Event {
     }
 
     // --- Standard Getters/Setters ---
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    public String getEventId() { return eventId; }
-    public void setEventId(String eventId) { this.eventId = eventId; }
-    public String getOrganizerId() { return organizerId; }
-    public void setOrganizerId(String organizerId) { this.organizerId = organizerId; }
-    public boolean isGeolocationReq() { return geolocationReq; }
-    public void setGeolocationReq(boolean geolocationReq) { this.geolocationReq = geolocationReq; }
-    public String getPosterUrl() { return posterUrl; }
-    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
-    public int getListLimit() { return listLimit; }
-    public void setListLimit(int listLimit) { this.listLimit = listLimit; }
+    public String getName() {
+        return name;
+    }
 
-    public boolean isPrivate() { return privateEvent; }
-    public void setPrivate(boolean privateEvent) { this.privateEvent = privateEvent; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getOrganizerId() {
+        return organizerId;
+    }
+
+    public void setOrganizerId(String organizerId) {
+        this.organizerId = organizerId;
+    }
+
+    public boolean isGeolocationReq() {
+        return geolocationReq;
+    }
+
+    public void setGeolocationReq(boolean geolocationReq) {
+        this.geolocationReq = geolocationReq;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
+    }
+
+    public int getListLimit() {
+        return listLimit;
+    }
+
+    public void setListLimit(int listLimit) {
+        this.listLimit = listLimit;
+    }
+
+    public boolean isPrivate() {
+        return privateEvent;
+    }
+
+    public void setPrivate(boolean privateEvent) {
+        this.privateEvent = privateEvent;
+    }
+
+    public List<String> getParticipants() {
+        if (participants == null) participants = new ArrayList<>();
+        return participants;
+
+    }
+
+    public void addParticipant(String userId) {
+        if (participants == null) participants = new ArrayList<>();
+        if (participants.contains(userId)) participants.add(userId);
+    }
+
+    public void removeParticipant(String userId) {
+        if (participants != null) participants.remove(userId);
+    }
 
     // --- LocalDateTime Logic for Firestore ---
 
