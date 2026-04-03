@@ -3,7 +3,10 @@ package com.example.eventlotterysystemapp.data.models;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.eventlotterysystemapp.R;
@@ -16,9 +19,14 @@ import java.util.List;
  */
 public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.ViewHolder> {
     private List<Participant> participants;
+    private boolean cancelBtn;
+    private String eventId;
 
-    public ParticipantAdapter(List<Participant> participants) {
+    public ParticipantAdapter(List<Participant> participants, boolean cancelBtn, String eventId) {
+
         this.participants = participants;
+        this.cancelBtn = cancelBtn;
+        this.eventId = eventId;
     }
 
     @NonNull
@@ -35,6 +43,25 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
         // Default text while loading
         holder.name.setText("Loading...");
         holder.email.setText(p.getEmail());
+
+        if (cancelBtn) {
+            holder.btnCancel.setVisibility(View.VISIBLE);
+            holder.btnCancel.setOnClickListener(v -> {
+                FirebaseFirestore.getInstance().collection("events")
+                        .document(eventId)
+                        .collection("participants")
+                        .document(p.getEmail())
+                        .update("status", "cancelled")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(holder.itemView.getContext(), "Participant cancelled", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(holder.itemView.getContext(), "Failed to cancel participant", Toast.LENGTH_SHORT).show();
+                        });
+            });
+        } else {
+            holder.btnCancel.setVisibility(View.GONE);
+        }
 
         FirebaseFirestore.getInstance().collection("users")
                 .whereEqualTo("email", p.getEmail()) // Look for the email field
@@ -63,10 +90,12 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, email;
+        Button btnCancel;
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.participantName);
             email = itemView.findViewById(R.id.participantEmail);
+            btnCancel = itemView.findViewById(R.id.btnCancel);
         }
     }
 }
