@@ -43,6 +43,29 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
 
         // Using the email from your login (test3@gmail.com)
         String userEmail = "test3@gmail.com";
+holder.name.setText(event.getName());
+        if (event.getDateTime() != null) {
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd");
+            String dateStr = event.getDateTime().format(formatter);
+
+            // If there's a location, let's show it next to the date
+            if (event.getLocation() != null && !event.getLocation().isEmpty()) {
+                holder.tvDate.setText("📅 " + dateStr + " • " + event.getLocation());
+            } else {
+                holder.tvDate.setText("📅 " + dateStr);
+            }
+        }
+
+        // 3. Set Capacity (Showing current participants vs limit)
+
+        db.collection("events").document(event.getEventId())
+                .collection("participants")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int actualCount = querySnapshot.size();
+                    holder.tvCapacity.setText("👥 " + actualCount + "/" + event.getListLimit());
+                });
+        // ... Keep your Join/Leave and 3-Dots logic here ...
 
         // 1. Set the Event Name
         if (event != null && event.getName() != null) {
@@ -100,9 +123,11 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 testParticipant.put("status", "waitlist");
 
                 pRef.set(testParticipant).addOnSuccessListener(aVoid -> {
-                    android.widget.Toast.makeText(context, "Added to Waitlist!", android.widget.Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(position); // Refresh UI
-                });
+                event.addParticipant(userEmail);
+                notifyItemChanged(position);
+                Toast.makeText(context,"Added to Waitlist", Toast.LENGTH_SHORT).show();
+                     });
+
             } else {
                 // LEAVING: Delete the document from the sub-collection
                 pRef.delete().addOnSuccessListener(aVoid -> {
@@ -118,16 +143,19 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, badge;
+        TextView name, tvDate, tvCapacity, badge;
         Button btnJoin;
         ImageButton ivEventOptions;
 
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.eventName);
-            badge = itemView.findViewById(R.id.tvJoinedBadge);
-            btnJoin = itemView.findViewById(R.id.btnJoin);
-            ivEventOptions = itemView.findViewById(R.id.btnThreeDotsMenu);
+            tvDate = itemView.findViewById(R.id.eventDate);       // Matches @id/eventDate
+            tvCapacity = itemView.findViewById(R.id.eventCapacity); // Matches @id/eventCapacity
+            badge = itemView.findViewById(R.id.tvJoinedBadge);     // Matches @id/tvJoinedBadge
+            btnJoin = itemView.findViewById(R.id.btnJoin);         // Matches @id/btnJoin
+            ivEventOptions = itemView.findViewById(R.id.btnThreeDotsMenu); // Matches @id/btnThreeDotsMenu
         }
     }
-}
+
+   }

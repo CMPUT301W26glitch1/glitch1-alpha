@@ -137,7 +137,9 @@ public class Event {
 
     public void addParticipant(String userId) {
         if (participants == null) participants = new ArrayList<>();
-        if (participants.contains(userId)) participants.add(userId);
+        if (!participants.contains(userId)) {
+            participants.add(userId);
+        }
     }
 
     public void removeParticipant(String userId) {

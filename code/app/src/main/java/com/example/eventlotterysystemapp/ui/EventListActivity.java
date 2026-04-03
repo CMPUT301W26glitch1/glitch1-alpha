@@ -120,7 +120,7 @@ public class EventListActivity extends AppCompatActivity {
 
     private void startFirebaseListener() {
         db.collection("events")
-                .whereEqualTo("privateEvent", false)
+                //.whereEqualTo("privateEvent", false)
                 .addSnapshotListener((value, error) -> {
             if (error != null) {
                 Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show();
