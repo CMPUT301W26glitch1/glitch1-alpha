@@ -29,7 +29,6 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         this.events = events;
     }
 
-    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_event_entrant, parent, false);
@@ -40,10 +39,10 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Event event = events.get(position);
         com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-
+        String deviceId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
         // Using the email from your login (test3@gmail.com)
         String userEmail = "test3@gmail.com";
-holder.name.setText(event.getName());
+        holder.name.setText(event.getName());
         if (event.getDateTime() != null) {
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd");
             String dateStr = event.getDateTime().format(formatter);
@@ -107,32 +106,37 @@ holder.name.setText(event.getName());
             });
         }
 
-        // 4. JOIN/LEAVE ACTION (Matches aarib444's screenshot logic)
+        // REPLACE YOUR JOIN/LEAVE ACTION (SECTION 4) WITH THIS:
+
+// US 01.07.01: Identify by Device ID instead of hardcoded email
+
         holder.btnJoin.setOnClickListener(v -> {
             boolean isCurrentlyJoined = holder.btnJoin.getText().toString().equalsIgnoreCase("Leave");
 
+            // Use deviceId as the document name to stay "301 Compliant"
             com.google.firebase.firestore.DocumentReference pRef = db.collection("events")
                     .document(event.getEventId())
                     .collection("participants")
-                    .document(userEmail);
+                    .document(deviceId);
 
             if (!isCurrentlyJoined) {
-                // JOINING: Create the map exactly like the teammate's test method
-                java.util.Map<String, Object> testParticipant = new java.util.HashMap<>();
-                testParticipant.put("email", userEmail);
-                testParticipant.put("status", "waitlist");
+                // JOINING: Matches US 01.01.01
+                java.util.Map<String, Object> participantData = new java.util.HashMap<>();
+                participantData.put("deviceId", deviceId);
+                participantData.put("email", userEmail); // Keep email for contact info (US 01.02.01)
+                participantData.put("status", "waiting"); // Matches User Story terminology
+                participantData.put("joinedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
-                pRef.set(testParticipant).addOnSuccessListener(aVoid -> {
-                event.addParticipant(userEmail);
-                notifyItemChanged(position);
-                Toast.makeText(context,"Added to Waitlist", Toast.LENGTH_SHORT).show();
-                     });
+                pRef.set(participantData).addOnSuccessListener(aVoid -> {
+                    Toast.makeText(context, "Added to Waiting List", Toast.LENGTH_SHORT).show();
+                    notifyItemChanged(position);
+                });
 
             } else {
-                // LEAVING: Delete the document from the sub-collection
+                // LEAVING: Matches US 01.01.02
                 pRef.delete().addOnSuccessListener(aVoid -> {
-                    android.widget.Toast.makeText(context, "Removed from Event", android.widget.Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(position); // Refresh UI
+                    Toast.makeText(context, "Left Waiting List", Toast.LENGTH_SHORT).show();
+                    notifyItemChanged(position);
                 });
             }
         });
