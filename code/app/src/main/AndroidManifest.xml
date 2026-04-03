@@ -97,6 +97,9 @@
         <activity
             android:name=".ui.AdminManageOrganizersActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.EntrantNotificationListActivity"
+            android:exported="false" />
 
         <!-- TEAMMATE FEATURE -->
         <activity

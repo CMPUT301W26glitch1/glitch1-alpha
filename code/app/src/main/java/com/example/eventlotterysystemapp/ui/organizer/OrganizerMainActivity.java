@@ -117,7 +117,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // We only need email and status here
-        String testEmail = "test1@gmail.com";
+        String testEmail = "ent1@gmail.com";
         String testEmail1 = "org3@test.com";
         Participant testParticipant = new Participant(testEmail, "waitlist");
         Participant testParticipant1 = new Participant(testEmail1, "enrolled");
