@@ -15,6 +15,7 @@ import com.example.eventlotterysystemapp.data.models.Notification;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
+import com.example.eventlotterysystemapp.data.models.Participant;
 
 public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNotificationAdapter.ViewHolder> {
 
@@ -68,22 +69,48 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
      */
     private void handleResponse(Notification notification, String action, int position) {
         db.collection("notifications").document(notification.getId())
-                .update("status", action);
-
-        // Update the status in the event's participant list
-        // If they accept a win, they are "enrolled". If they decline, they are "cancelled".
-        String participantStatus = action.equals("accepted") ? "enrolled" : "cancelled";
-
-        db.collection("events").document(notification.getEventId())
-                .collection("participants").document(notification.getRecipientEmail())
-                .update("status", participantStatus)
+                .update("status", action)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Invitation " + action, Toast.LENGTH_SHORT).show();
-                    notification.setStatus(action);
-                    notifyItemChanged(position);
+                    String type = notification.getType();
+
+                    if ("PRIVATE_INVITE".equals(type)) {
+                        if ("accepted".equals(action)) {
+                            Participant participant = new Participant(notification.getRecipientEmail(), "waitlist");
+
+                            db.collection("events").document(notification.getEventId())
+                                    .collection("participants").document(notification.getRecipientEmail())
+                                    .set(participant)
+                                    .addOnSuccessListener(unused -> {
+                                        Toast.makeText(context, "Invitation accepted", Toast.LENGTH_SHORT).show();
+                                        notification.setStatus(action);
+                                        notifyItemChanged(position);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show();
+                                    });
+                        } else {
+                            Toast.makeText(context, "Invitation declined", Toast.LENGTH_SHORT).show();
+                            notification.setStatus(action);
+                            notifyItemChanged(position);
+                        }
+                    } else {
+                        String participantStatus = action.equals("accepted") ? "enrolled" : "cancelled";
+
+                        db.collection("events").document(notification.getEventId())
+                                .collection("participants").document(notification.getRecipientEmail())
+                                .update("status", participantStatus)
+                                .addOnSuccessListener(unused -> {
+                                    Toast.makeText(context, "Invitation " + action, Toast.LENGTH_SHORT).show();
+                                    notification.setStatus(action);
+                                    notifyItemChanged(position);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show();
+                                });
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Error updating notification", Toast.LENGTH_SHORT).show();
                 });
     }
 
