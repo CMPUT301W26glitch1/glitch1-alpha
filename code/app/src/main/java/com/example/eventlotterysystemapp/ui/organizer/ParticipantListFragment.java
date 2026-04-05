@@ -32,6 +32,7 @@ import java.util.List;
  */
 public class ParticipantListFragment extends Fragment {
     private String eventId, status;
+    private String maxLimit = "Unlimited";
     private RecyclerView recyclerView;
     private ParticipantAdapter adapter;
     private List<Participant> participantList = new ArrayList<>();
@@ -85,18 +86,13 @@ public class ParticipantListFragment extends Fragment {
             tvCapacity.setVisibility(View.VISIBLE);
             fetchEventCapacity();
 
-            lotteryBtn.setOnClickListener(v -> {
-                FirebaseFirestore.getInstance().collection("events")
-                        .document(eventId)
-                        .get()
-                        .addOnSuccessListener(documentSnapshot -> {
-                            if (documentSnapshot.exists()) {
-                                Long limit = documentSnapshot.getLong("listLimit");
-                                int winnersToPick = (limit != null) ? limit.intValue() : Integer.MAX_VALUE;
-                                runLottery(winnersToPick);
-                            }
-                        });
-            });
+            // Pass 0 because the method now calculates winners internally
+            lotteryBtn.setOnClickListener(v -> runLottery(0));
+
+        } else if ("selected".equals(status) || "enrolled".equals(status)) {
+            lotteryBtn.setVisibility(View.GONE);
+            tvCapacity.setVisibility(View.VISIBLE);
+            fetchEventCapacity();
         } else {
             lotteryBtn.setVisibility(View.GONE);
             tvCapacity.setVisibility(View.GONE);
@@ -109,11 +105,31 @@ public class ParticipantListFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (isAdded() && documentSnapshot.exists()) {
-                        Long limit = documentSnapshot.getLong("listLimit");
-                        String limitText = (limit != null) ? limit.toString() : "Unlimited";
-                        tvCapacity.setText("Max Participants: " + limitText);
+                        Long limit;
+
+                        if ("waitlist".equals(status)) {
+                            limit = documentSnapshot.getLong("listLimit");
+                        } else {
+                            limit = documentSnapshot.getLong("maxParticipants");
+                        }
+
+                        if (limit != null && limit != Integer.MAX_VALUE) {
+                            maxLimit = limit.toString();
+                        } else {
+                            maxLimit = "Unlimited";
+                        }
+
+                        updateCapacityText();
                     }
                 });
+    }
+
+    private void updateCapacityText() {
+        if ("waitlist".equals(status)) {
+            tvCapacity.setText("Waitlist: " + participantList.size() + " / " + maxLimit);
+        } else {
+            tvCapacity.setText("Count: " + participantList.size());
+        }
     }
 
     private void listenForParticipants() {
@@ -122,7 +138,6 @@ public class ParticipantListFragment extends Fragment {
                 .whereEqualTo("status", status)
                 .addSnapshotListener((querySnap, e) -> {
                     if (e != null || !isAdded()) return;
-
                     participantList.clear();
                     if (querySnap != null) {
                         for (QueryDocumentSnapshot doc : querySnap) {
@@ -130,39 +145,97 @@ public class ParticipantListFragment extends Fragment {
                             participantList.add(p);
                         }
                         adapter.notifyDataSetChanged();
+
+                        if ("selected".equals(status)) {
+                            calculateTotalOccupancy();
+                        } else if ("enrolled".equals(status)) {
+                            calculateTotalOccupancyForEnrolled();
+                        } else {
+                            updateCapacityText();
+                        }
                     }
                 });
     }
 
-    private void runLottery(int numberOfWinners) {
+    private void calculateTotalOccupancy() {
+        FirebaseFirestore.getInstance().collection("events")
+                .document(eventId).collection("participants")
+                .whereEqualTo("status", "enrolled")
+                .get()
+                .addOnSuccessListener(enrolledSnap -> {
+                    if (!isAdded()) return;
+
+                    int enrolledCount = enrolledSnap.size();
+                    int selectedCount = participantList.size();
+                    int totalOccupancy = enrolledCount + selectedCount;
+
+                    tvCapacity.setText("Occupancy: " + totalOccupancy + " / " + maxLimit);
+                });
+    }
+
+    private void calculateTotalOccupancyForEnrolled() {
+        FirebaseFirestore.getInstance().collection("events")
+                .document(eventId).collection("participants")
+                .whereEqualTo("status", "selected")
+                .get()
+                .addOnSuccessListener(selectedSnap -> {
+                    if (!isAdded()) return;
+
+                    int selectedCount = selectedSnap.size();
+                    int enrolledCount = participantList.size();
+                    int totalOccupancy = selectedCount + enrolledCount;
+
+                    tvCapacity.setText("Occupancy: " + totalOccupancy + " / " + maxLimit);
+                });
+    }
+
+    private void runLottery(int ignore) {
         if (participantList.isEmpty()) {
             Toast.makeText(getContext(), "Waitlist is empty!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        List<Participant> shuffledList = new ArrayList<>(participantList);
-        Collections.shuffle(shuffledList);
-
-        int actualWinners = Math.min(numberOfWinners, shuffledList.size());
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        WriteBatch batch = db.batch();
 
-        for (int i = 0; i < actualWinners; i++) {
-            Participant winner = shuffledList.get(i);
-            DocumentReference ref = db.collection("events")
-                    .document(eventId)
-                    .collection("participants")
-                    .document(winner.getEmail());
+        db.collection("events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+            if (!eventDoc.exists()) return;
 
-            batch.update(ref, "status", "selected");
-        }
+            Long maxParticipantsLong = eventDoc.getLong("maxParticipants");
+            int totalCapacity = (maxParticipantsLong != null) ? maxParticipantsLong.intValue() : Integer.MAX_VALUE;
 
-        batch.commit().addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Lottery complete!", Toast.LENGTH_SHORT).show();
-            lotteryBtn.setEnabled(false);
-            lotteryBtn.setText("Lottery Completed");
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Lottery failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            db.collection("events").document(eventId).collection("participants")
+                    .whereIn("status", java.util.Arrays.asList("selected", "enrolled"))
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        int currentOccupancy = querySnapshot.size();
+                        int spotsAvailable = totalCapacity - currentOccupancy;
+
+                        if (spotsAvailable <= 0) {
+                            Toast.makeText(getContext(), "Event is already full!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        List<Participant> shuffledList = new ArrayList<>(participantList);
+                        Collections.shuffle(shuffledList);
+
+                        int actualWinners = Math.min(spotsAvailable, shuffledList.size());
+
+                        WriteBatch batch = db.batch();
+                        for (int i = 0; i < actualWinners; i++) {
+                            Participant winner = shuffledList.get(i);
+                            DocumentReference ref = db.collection("events")
+                                    .document(eventId)
+                                    .collection("participants")
+                                    .document(winner.getEmail());
+                            batch.update(ref, "status", "selected");
+                        }
+
+                        batch.commit().addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Lottery picked " + actualWinners + " participants!", Toast.LENGTH_SHORT).show();
+                            lotteryBtn.setEnabled(false);
+                            lotteryBtn.setText("Lottery Completed");
+                        });
+                    });
         });
     }
 }
