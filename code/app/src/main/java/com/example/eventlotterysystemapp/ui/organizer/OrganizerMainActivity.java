@@ -85,7 +85,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                         String userDocRefId = userQuery.getDocuments().get(0).getId();
 
                         db.collection("events")
-                                .whereEqualTo("organizerId", loggedInUserEmail)
+                                .whereEqualTo("organizerId", userDocRefId)
                                 .addSnapshotListener((value, error) -> {
                                     if (error != null) {
                                         Toast.makeText(this, "Load failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
