@@ -23,113 +23,120 @@ import java.util.List;
 public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapter.ViewHolder> {
     private Context context;
     private List<Event> events;
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    String email = getUser().getEmail();
-
-
+    private FirebaseFirestore db;
+    private String email;
 
     public EntrantEventAdapter(Context context, List<Event> events) {
         this.context = context;
         this.events = events;
+        this.db = FirebaseFirestore.getInstance();
+
+        if (getUser() != null) {
+            this.email = getUser().getEmail();
+        } else {
+            this.email = "";
+        }
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // This uses your specific Entrant XML
         View view = LayoutInflater.from(context).inflate(R.layout.item_event_entrant, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-
         Event event = events.get(position);
+        if (event == null) return;
+
         String eventId = event.getEventId();
 
-        holder.eventName.setText(event.getName());
+        if (email == null || email.isEmpty()) {
+            if (getUser() != null) email = getUser().getEmail();
+        }
 
-        // Show the location or date in the details section
+        holder.eventName.setText(event.getName());
         holder.eventDate.setText(event.getLocation());
 
-        // Load the image the Organizer uploaded
         Glide.with(context)
                 .load(event.getPosterUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.eventPoster);
 
+        if (email == null || email.isEmpty()) {
+            holder.btnJoin.setEnabled(false);
+            return;
+        } else {
+            holder.btnJoin.setEnabled(true);
+        }
 
-        //reference to the user's document
+        // Tracking current status for logic checks
+        final String[] currentStatus = {"none"};
+
         DocumentReference userRef = db.collection("events")
                 .document(eventId)
                 .collection("participants")
-                .document(getUser().getEmail());
+                .document(email);
 
-        //Make the button leave or join
         userRef.addSnapshotListener((snapshot, e) -> {
-            if (e != null) {
-                // Handle error
-                return;
-            }
+            if (e != null) return;
 
             if (snapshot != null && snapshot.exists()) {
-
-                //Gets the status of the user (waitlist, etc)
                 String status = snapshot.getString("status");
+                currentStatus[0] = (status != null) ? status : "none";
 
-                //If on waitlist then button now says "Leave"
-                if ("waitlist".equals(status)) {
-                    holder.btnJoin.setText("Leave");
-                } else {
+                if ("cancelled".equalsIgnoreCase(status)) {
                     holder.btnJoin.setText("Join");
+                } else {
+                    holder.btnJoin.setText("Leave");
                 }
             } else {
-                // User not in list at all
+                currentStatus[0] = "none";
                 holder.btnJoin.setText("Join");
             }
         });
 
         holder.btnJoin.setOnClickListener(v -> {
+            String buttonText = holder.btnJoin.getText().toString();
+            String status = currentStatus[0];
 
+            if ("Join".equalsIgnoreCase(buttonText)) {
+                // Allowed to join if status is none, empty, or cancelled
+                if (status == null || status.isEmpty() || "none".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
 
+                    Participant participant = new Participant(email, "waitlist");
 
+                    // Use .set() to either create or overwrite the existing "cancelled" entry
+                    userRef.set(participant)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(err -> {
+                                Toast.makeText(context, "Error joining: " + err.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    Toast.makeText(context, "You are already active (Status: " + status + ")", Toast.LENGTH_SHORT).show();
+                }
 
-            if (holder.btnJoin.getText().toString() == "Join") {
-                Participant participant = new Participant(email, "waitlist");
-
-                db.collection("events")
-                        .document(eventId)
-                        .collection("participants")
-                        .document(email) // use email as unique ID
-                        .set(participant)
+            } else {
+                // "Leave" Logic
+                userRef.update("status", "cancelled")
                         .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show();
-                            //holder.btnJoin.setEnabled(false);
-                            holder.btnJoin.setText("Leave");
+                            Toast.makeText(context, "Status updated to cancelled.", Toast.LENGTH_SHORT).show();
                         })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(context, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        .addOnFailureListener(err -> {
+                            // If update fails (doc doesn't exist), create a cancelled entry
+                            Participant cancelledParticipant = new Participant(email, "cancelled");
+                            userRef.set(cancelledParticipant)
+                                    .addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT));
                         });
-
-            }  else{
-                db.collection("events")
-                        .document(eventId)
-                        .collection("participants")
-                        .document(email) // Use same unique ID (email)
-                        .delete()
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(context, "Left waitlist", Toast.LENGTH_SHORT).show();
-                            holder.btnJoin.setText("Join");
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-
             }
-        });    }
+        });
+    }
 
     @Override
-    public int getItemCount() { return events.size(); }
+    public int getItemCount() { return events != null ? events.size() : 0; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView eventName, eventDate;
