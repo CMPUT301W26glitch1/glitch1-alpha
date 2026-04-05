@@ -4,11 +4,25 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <TextView
+        android:id="@+id/tvCapacity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="8dp"
+        android:text="Max Participants: --"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/participantRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/btnLottery" />
+        android:layout_below="@id/tvCapacity"
+        android:layout_above="@+id/btnLottery"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"/>
 
     <Button
         android:id="@+id/btnLottery"

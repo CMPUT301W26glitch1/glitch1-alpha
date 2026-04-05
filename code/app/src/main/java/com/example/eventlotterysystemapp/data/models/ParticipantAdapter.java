@@ -3,7 +3,10 @@ package com.example.eventlotterysystemapp.data.models;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.eventlotterysystemapp.R;
@@ -16,9 +19,14 @@ import java.util.List;
  */
 public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.ViewHolder> {
     private List<Participant> participants;
+    private boolean cancelBtn;
+    private String eventId;
 
-    public ParticipantAdapter(List<Participant> participants) {
+    public ParticipantAdapter(List<Participant> participants, boolean cancelBtn, String eventId) {
+
         this.participants = participants;
+        this.cancelBtn = cancelBtn;
+        this.eventId = eventId;
     }
 
     @NonNull
@@ -36,21 +44,43 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
         holder.name.setText("Loading...");
         holder.email.setText(p.getEmail());
 
-        // Fetch real user name from the main "users" collection
-        // Note: Using document ID directly because UserController uses email as the ID
+        if (cancelBtn) {
+            holder.btnCancel.setVisibility(View.VISIBLE);
+            holder.btnCancel.setOnClickListener(v -> {
+                FirebaseFirestore.getInstance().collection("events")
+                        .document(eventId)
+                        .collection("participants")
+                        .document(p.getEmail())
+                        .update("status", "cancelled")
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(holder.itemView.getContext(), "Participant cancelled", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(holder.itemView.getContext(), "Failed to cancel participant", Toast.LENGTH_SHORT).show();
+                        });
+            });
+        } else {
+            holder.btnCancel.setVisibility(View.GONE);
+        }
+
         FirebaseFirestore.getInstance().collection("users")
-                .document(p.getEmail())
+                .whereEqualTo("email", p.getEmail()) // Look for the email field
                 .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String name = doc.getString("name");
-                        // Ensure we are still binding to the correct position after the async call
-                        if (holder.getBindingAdapterPosition() == position) {
-                            holder.name.setText(name != null ? name : "Unknown User");
-                        }
+                .addOnSuccessListener(querySnapshot -> {
+                    if (holder.getBindingAdapterPosition() != position) return;
+
+                    if (!querySnapshot.isEmpty()) {
+                        String name = querySnapshot.getDocuments().get(0).getString("name");
+                        holder.name.setText(name != null ? name : "Unknown User");
+                    } else {
+                        holder.name.setText("User Not Found");
                     }
                 })
-                .addOnFailureListener(e -> holder.name.setText("Error loading name"));
+                .addOnFailureListener(e -> {
+                    if (holder.getBindingAdapterPosition() == position) {
+                        holder.name.setText("Error loading name");
+                    }
+                });
     }
 
     @Override
@@ -60,10 +90,12 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, email;
+        Button btnCancel;
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.participantName);
             email = itemView.findViewById(R.id.participantEmail);
+            btnCancel = itemView.findViewById(R.id.btnCancel);
         }
     }
 }

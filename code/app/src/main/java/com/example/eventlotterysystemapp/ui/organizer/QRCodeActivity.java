@@ -30,9 +30,10 @@ public class QRCodeActivity extends AppCompatActivity {
         returnBtn = findViewById(R.id.returnBtn);
 
         String eventId = getIntent().getStringExtra("EVENT_ID");
+        boolean isPrivate = getIntent().getBooleanExtra("IS_PRIVATE", false);
 
-        if (eventId != null) {
-            generateQRCode(eventId);
+        if (eventId != null && !isPrivate) {
+            generateQRCode("Event_ID:" + eventId);
         }
 
         returnBtn.setOnClickListener(v -> finish());

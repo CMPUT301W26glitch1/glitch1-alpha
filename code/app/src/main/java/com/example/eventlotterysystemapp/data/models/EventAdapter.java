@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
 import com.example.eventlotterysystemapp.ui.organizer.EventParticipantsActivity;
+import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
 import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
 
@@ -50,6 +51,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         holder.btnQR.setOnClickListener(v -> {
             Intent intent = new Intent(context, QRCodeActivity.class);
             intent.putExtra("EVENT_ID", event.getEventId());
+            intent.putExtra("IS_PRIVATE", event.isPrivate());
             context.startActivity(intent);
         });
 
@@ -66,6 +68,20 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             intent.putExtra("EVENT_ID", event.getEventId());
             context.startActivity(intent);
         });
+
+        // Invite Button - only for private events
+        if (event.isPrivate()) {
+            holder.btnInvite.setVisibility(View.VISIBLE);
+            //holder.btnQR.setVisibility(View.GONE);
+            holder.btnInvite.setOnClickListener(v -> {
+                Intent intent = new Intent(context, InviteEntrantActivity.class);
+                intent.putExtra("EVENT_ID", event.getEventId());
+                context.startActivity(intent);
+            });
+        } else {
+            holder.btnInvite.setVisibility(View.GONE);
+            holder.btnQR.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -74,7 +90,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView eventName, eventDesc;
         ImageView poster;
-        Button btnQR, btnParticipants;
+        Button btnQR, btnParticipants, btnInvite;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -83,6 +99,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             poster = itemView.findViewById(R.id.eventPoster);
             btnQR = itemView.findViewById(R.id.btnQR);
             btnParticipants = itemView.findViewById(R.id.btnParticipants);
+            btnInvite = itemView.findViewById(R.id.btnInvite);
         }
     }
 }

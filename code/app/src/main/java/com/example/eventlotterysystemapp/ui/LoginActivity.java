@@ -117,7 +117,9 @@ public class LoginActivity extends AppCompatActivity {
                         case "Entrant":
                             // TODO: replace with EntrantDashboardActivity when built
                             Toast.makeText(this, "Welcome, Entrant!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(this, EventListActivity.class));
+                            Intent entrantIntent = new Intent(this, EventListActivity.class);
+                            entrantIntent.putExtra("USER_EMAIL", email);
+                            startActivity(entrantIntent);
                             finish();
 
                             break;

@@ -47,7 +47,15 @@
 
         <activity
             android:name=".ui.organizer.EventParticipantsActivity"
-            android:exported="false" />
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.InviteEntrantActivity"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.organizer.NotificationActivity">
+        </activity>
 
         <activity
             android:name=".ui.ProfileActivity" />
@@ -88,6 +96,9 @@
 
         <activity
             android:name=".ui.AdminManageOrganizersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.EntrantNotificationListActivity"
             android:exported="false" />
 
         <!-- TEAMMATE FEATURE -->

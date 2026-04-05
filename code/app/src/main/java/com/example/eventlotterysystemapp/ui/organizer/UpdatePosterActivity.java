@@ -20,7 +20,7 @@ import com.google.firebase.storage.StorageReference;
  */
 public class UpdatePosterActivity extends AppCompatActivity {
     private ImageView previewPoster;
-    private Button newImgBtn, updateBtn;
+    private Button newImgBtn, updateBtn, returnBtn;
     private Uri selectedImageUri;
     private String eventId;
 
@@ -44,6 +44,7 @@ public class UpdatePosterActivity extends AppCompatActivity {
         previewPoster = findViewById(R.id.previewPoster);
         newImgBtn = findViewById(R.id.newImgBtn);
         updateBtn = findViewById(R.id.updateBtn);
+        returnBtn = findViewById(R.id.returnToMenu);
 
         loadExistingPoster();
 
@@ -55,6 +56,10 @@ public class UpdatePosterActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Please select an image first", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        returnBtn.setOnClickListener(v -> {
+            finish();
         });
     }
 
