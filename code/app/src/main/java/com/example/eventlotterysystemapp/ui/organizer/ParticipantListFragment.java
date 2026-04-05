@@ -85,8 +85,6 @@ public class ParticipantListFragment extends Fragment {
             lotteryBtn.setVisibility(View.VISIBLE);
             tvCapacity.setVisibility(View.VISIBLE);
             fetchEventCapacity();
-
-            // Pass 0 because the method now calculates winners internally
             lotteryBtn.setOnClickListener(v -> runLottery(0));
 
         } else if ("selected".equals(status) || "enrolled".equals(status)) {
@@ -127,8 +125,10 @@ public class ParticipantListFragment extends Fragment {
     private void updateCapacityText() {
         if ("waitlist".equals(status)) {
             tvCapacity.setText("Waitlist: " + participantList.size() + " / " + maxLimit);
+        } else if ("selected".equals(status) || "enrolled".equals(status)) {
+            tvCapacity.setText("Occupancy: " + participantList.size() + " / " + maxLimit);
         } else {
-            tvCapacity.setText("Count: " + participantList.size());
+            tvCapacity.setText("Total: " + participantList.size());
         }
     }
 

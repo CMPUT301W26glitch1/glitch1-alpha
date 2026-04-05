@@ -1,5 +1,6 @@
 package com.example.eventlotterysystemapp.data.models;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -17,13 +18,19 @@ public class ParticipantPagerAdapter extends FragmentStateAdapter {
         this.eventId = eventId;
     }
 
+    @NonNull
     @Override
     public Fragment createFragment(int position) {
-        String status = (position == 0) ? "waitlist" : (position == 1) ? "selected" : (position == 2) ? "cancelled" : "enrolled";
-        // Pass the eventId and status to the fragment
-        return ParticipantListFragment.newInstance(eventId, status);
+        switch (position) {
+            case 0: return ParticipantListFragment.newInstance(eventId, "waitlist");
+            case 1: return ParticipantListFragment.newInstance(eventId, "selected");
+            case 2: return ParticipantListFragment.newInstance(eventId, "cancelled");
+            case 3: return ParticipantListFragment.newInstance(eventId, "enrolled");
+            case 4: return ParticipantListFragment.newInstance(eventId, "co-organizer");
+            default: return ParticipantListFragment.newInstance(eventId, "waitlist");
+        }
     }
 
     @Override
-    public int getItemCount() { return 4; }
+    public int getItemCount() { return 5; }
 }

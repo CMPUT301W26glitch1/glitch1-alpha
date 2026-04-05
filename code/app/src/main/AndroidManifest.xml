@@ -100,6 +100,9 @@
         <activity
             android:name=".ui.EntrantNotificationListActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.organizer.InviteCoorgActivity"
+            android:exported="false" />
 
         <!-- TEAMMATE FEATURE -->
         <activity
