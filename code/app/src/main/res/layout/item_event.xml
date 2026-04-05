@@ -66,7 +66,16 @@
                 android:layout_height="40dp"
                 android:text="Invite"
                 android:textSize="12sp"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btnComments"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Comments"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp" />
+
     </LinearLayout>
 </LinearLayout>
