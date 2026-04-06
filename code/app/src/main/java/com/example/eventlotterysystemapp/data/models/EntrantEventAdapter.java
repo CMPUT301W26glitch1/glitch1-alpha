@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ImageButton; // Added
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,12 +16,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
-import com.example.eventlotterysystemapp.ui.EntrantCommentActivity; // Added
+import com.example.eventlotterysystemapp.ui.EntrantCommentActivity;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-
-import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.List;
 
@@ -50,11 +49,24 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         Event event = events.get(position);
         if (event == null) return;
 
+        // Core fix: Cancel existing listeners before binding new ones
         holder.cancelListeners();
-        String eventId = event.getEventId();
 
+        String eventId = event.getEventId();
         holder.eventName.setText(event.getName());
 
+        // --- SESSION SAFETY ---
+        // If email is missing (e.g. browsing as guest/admin), hide interaction buttons
+        if (email.isEmpty()) {
+            holder.btnJoin.setVisibility(View.GONE);
+            holder.tvJoinedBadge.setVisibility(View.GONE);
+            holder.btnComments.setVisibility(View.GONE);
+        } else {
+            holder.btnJoin.setVisibility(View.VISIBLE);
+            holder.btnComments.setVisibility(View.VISIBLE);
+        }
+
+        // --- COMMENTS LOGIC ---
         View.OnClickListener openComments = v -> {
             if (eventId != null) {
                 Intent intent = new Intent(context, EntrantCommentActivity.class);
@@ -65,11 +77,10 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 Toast.makeText(context, "Event ID not found", Toast.LENGTH_SHORT).show();
             }
         };
-
         holder.eventName.setOnClickListener(openComments);
         holder.btnComments.setOnClickListener(openComments);
-        holder.btnComments.setVisibility(View.VISIBLE);
 
+        // --- DATE FORMATTING ---
         if (event.getDateTimeAsDate() != null) {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault());
             holder.eventDate.setText("📅 " + sdf.format(event.getDateTimeAsDate()));
@@ -77,6 +88,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             holder.eventDate.setText("📅 TBD");
         }
 
+        // --- LISTENER 1: CAPACITY & WAITLIST ---
         holder.capacityListenerReg = db.collection("events")
                 .document(eventId)
                 .collection("participants")
@@ -99,18 +111,20 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                     }
                 });
 
+        // --- POSTER IMAGE ---
         Glide.with(context)
                 .load(event.getPosterUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.eventPoster);
 
-        if (email.isEmpty()) {
-            holder.btnJoin.setEnabled(false);
-            return;
-        }
+        if (email.isEmpty()) return;
 
+        // --- LISTENER 2: USER JOIN STATUS ---
         final String[] currentStatus = {"none"};
-        DocumentReference userRef = db.collection("events").document(eventId).collection("participants").document(email);
+        DocumentReference userRef = db.collection("events")
+                .document(eventId)
+                .collection("participants")
+                .document(email);
 
         holder.statusListenerReg = userRef.addSnapshotListener((snapshot, e) -> {
             if (e != null || snapshot == null) return;
@@ -122,8 +136,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 holder.tvJoinedBadge.setVisibility(View.VISIBLE);
                 holder.tvJoinedBadge.setText(currentStatus[0].toUpperCase());
 
-                // Set colors based on status
-                int color = android.graphics.Color.parseColor("#1A237E"); // Default blue
+                // Set color based on status
+                int color = android.graphics.Color.parseColor("#1A237E");
                 if ("selected".equalsIgnoreCase(currentStatus[0])) color = android.graphics.Color.GREEN;
                 else if ("cancelled".equalsIgnoreCase(currentStatus[0])) color = android.graphics.Color.RED;
 
@@ -136,17 +150,24 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             }
         });
 
+        // --- JOIN/LEAVE ACTION ---
         holder.btnJoin.setOnClickListener(v -> {
-            if ("Join".equalsIgnoreCase(holder.btnJoin.getText().toString())) {
+            String buttonText = holder.btnJoin.getText().toString();
+            if ("Join".equalsIgnoreCase(buttonText)) {
                 Participant p = new Participant(email, "waitlist");
-                userRef.set(p).addOnSuccessListener(aVoid -> Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show());
+                userRef.set(p).addOnSuccessListener(aVoid ->
+                        Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show());
             } else {
-                userRef.update("status", "cancelled").addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show());
+                userRef.update("status", "cancelled").addOnSuccessListener(aVoid ->
+                        Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show());
             }
         });
 
+        // --- ACCESSIBILITY ---
         if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
             holder.eventName.setTextSize(26);
+            holder.eventDate.setTextSize(16);
+            holder.eventCapacity.setTextSize(16);
             holder.btnJoin.setTextSize(15);
         }
     }
@@ -164,7 +185,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         TextView eventName, eventDate, eventCapacity, tvJoinedBadge;
         ImageView eventPoster;
         Button btnJoin;
-        ImageButton btnThreedotsMenu, btnComments; // Added btnComments
+        ImageButton btnThreedotsMenu, btnComments;
 
         ListenerRegistration capacityListenerReg;
         ListenerRegistration statusListenerReg;
@@ -177,9 +198,12 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
             tvJoinedBadge = itemView.findViewById(R.id.tvJoinedBadge);
-            btnThreedotsMenu = itemView.findViewById(R.id.btnThreeDotsMenu);
-            // NEW: Initialize the comments button
             btnComments = itemView.findViewById(R.id.btnComments);
+
+            View menuView = itemView.findViewById(R.id.btnThreeDotsMenu);
+            if (menuView instanceof ImageButton) {
+                btnThreedotsMenu = (ImageButton) menuView;
+            }
         }
 
         public void cancelListeners() {
