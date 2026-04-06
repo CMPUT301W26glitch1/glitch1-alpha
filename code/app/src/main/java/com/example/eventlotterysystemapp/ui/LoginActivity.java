@@ -114,7 +114,9 @@ public class LoginActivity extends AppCompatActivity {
                             );
                             adminUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(adminUser);
-                            startActivity(new Intent(this, AdminDashboardActivity.class));
+                            Intent adminIntent = new Intent(this, AdminDashboardActivity.class);
+                            adminIntent.putExtra("USER_EMAIL", email);
+                            startActivity(adminIntent);
                             finish();
                             break;
 

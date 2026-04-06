@@ -5,15 +5,17 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private Switch switchOptOut;
+    private Switch switchOptOut, switchAccessibility;
     private FirebaseFirestore db;
     private String userDocId;
 
@@ -24,9 +26,31 @@ public class SettingsActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         switchOptOut = findViewById(R.id.switchOptOut);
+        switchAccessibility = findViewById(R.id.switchAccessibility);
 
         ImageView btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            setResult(RESULT_OK);
+            finish();
+        });
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
+
+        boolean accessibilityEnabled = AccessibilityUtils.isAccessibilityModeOn(this);
+        switchAccessibility.setChecked(accessibilityEnabled);
+
+        switchAccessibility.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            AccessibilityUtils.saveAccessibilityMode(this, isChecked);
+            String msg = isChecked ? "Accessibility mode enabled" : "Accessibility mode disabled";
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            recreate();
+        });
 
         // Look up the user's Firestore doc by email to get their doc ID and current preference
         String email = UserSession.getUser().getEmail();

@@ -9,6 +9,7 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
 
 import android.widget.Toast;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 // AdminDashboardActivity is the home screen for Admin users.
 // It presents a menu of admin actions, each represented as a clickable CardView.
@@ -19,6 +20,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         adminEmail = getIntent().getStringExtra("USER_EMAIL");
 
