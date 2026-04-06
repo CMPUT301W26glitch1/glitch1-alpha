@@ -8,6 +8,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +24,7 @@ import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.ArrayList;
 
@@ -37,6 +41,7 @@ public class EventListActivity extends AppCompatActivity {
     private EntrantEventAdapter adapter;
     private FirebaseFirestore db;
     private String loggedInUserEmail;
+    private ActivityResultLauncher<Intent> settingsLauncher;
 
     private static final int FILTER_REQUEST_CODE = 200;
 
@@ -44,6 +49,16 @@ public class EventListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
+        AccessibilityUtils.applyAccessibilityMode(this);
+
+        settingsLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        recreate();
+                    }
+                }
+        );
 
         boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
         loggedInUserEmail = getIntent().getStringExtra("USER_EMAIL");
@@ -95,8 +110,8 @@ public class EventListActivity extends AppCompatActivity {
                     startActivity(new Intent(EventListActivity.this, LotteryInfoActivity.class));
                     return true;
                 } else if (item.getTitle().equals("Settings")) {
-                startActivity(new Intent(EventListActivity.this, SettingsActivity.class));
-                return true;
+                    settingsLauncher.launch(new Intent(EventListActivity.this, SettingsActivity.class));
+                    return true;
                 } else if (item.getTitle().equals("Logout")) {
                     if (isAdmin) {
                         // Return to Admin Dashboard

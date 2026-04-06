@@ -15,6 +15,7 @@ import com.example.eventlotterysystemapp.data.models.Participant;
 import com.example.eventlotterysystemapp.ui.LoginActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.sql.SQLOutput;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_organizer);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
         // Retrieve the email passed from LoginActivity
