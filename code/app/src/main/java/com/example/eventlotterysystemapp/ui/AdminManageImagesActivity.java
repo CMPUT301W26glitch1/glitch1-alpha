@@ -22,6 +22,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class AdminManageImagesActivity extends AppCompatActivity {
 
     private RecyclerView recyclerImages;
@@ -33,6 +35,7 @@ public class AdminManageImagesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_images);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

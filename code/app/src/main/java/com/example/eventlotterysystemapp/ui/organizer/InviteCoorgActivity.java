@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class InviteCoorgActivity extends AppCompatActivity {
 
     private EditText searchCoorg;
@@ -35,6 +37,7 @@ public class InviteCoorgActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invite_coorg);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
 
@@ -103,10 +106,43 @@ public class InviteCoorgActivity extends AppCompatActivity {
 
 
     private void sendCoorgInvite(String email, String userId) {
-        NotificationManager manager = new NotificationManager();
-        String message = "You have been invited to be a Co-Organizer for this event.";
+        db.collection("events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+            if (!eventDoc.exists()) {
+                Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        manager.sendNotification(userId, email, message, "COORG_INVITE", eventId);
-        Toast.makeText(this, "Invitation sent", Toast.LENGTH_SHORT).show();
+            String eventName = eventDoc.getString("name");
+            String finalEventName = (eventName != null) ? eventName : "an event";
+
+            db.collection("users").document(userId).get().addOnSuccessListener(userDoc -> {
+                if (userDoc.exists()) {
+                    Boolean optedOut = userDoc.getBoolean("notificationsOptedOut");
+                    if (Boolean.TRUE.equals(optedOut)) {
+                        Toast.makeText(this, "User has opted out of notifications", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("recipientEmail", email);
+                notification.put("recipientId", userId);
+                notification.put("eventId", eventId);
+                notification.put("message", "You have been invited to be a Co-Organizer for: " + finalEventName);
+                notification.put("type", "COORG_INVITE");
+                notification.put("status", "pending");
+                notification.put("timestamp", Timestamp.now());
+
+                db.collection("notifications")
+                        .add(notification)
+                        .addOnSuccessListener(documentReference -> {
+                            documentReference.update("id", documentReference.getId());
+                            Toast.makeText(this, "Invitation sent for " + finalEventName, Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+            });
+        }).addOnFailureListener(e ->
+                Toast.makeText(this, "Error fetching event details", Toast.LENGTH_SHORT).show());
     }
 }

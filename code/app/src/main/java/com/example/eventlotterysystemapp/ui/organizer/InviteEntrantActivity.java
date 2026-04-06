@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class InviteEntrantActivity extends AppCompatActivity {
 
     private EditText searchEntrant;
@@ -35,6 +37,7 @@ public class InviteEntrantActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invite_entrant);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
 
@@ -106,35 +109,48 @@ public class InviteEntrantActivity extends AppCompatActivity {
     }
 
     private void inviteUserToWaitlist(String email, String userId) {
-        db.collection("events")
-                .document(eventId)
+        db.collection("users")
+                .whereEqualTo("email", email)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    String eventName = documentSnapshot.getString("name");
-                    if (eventName == null || eventName.isEmpty()) {
-                        eventName = "Private Event";
+                .addOnSuccessListener(userSnapshot -> {
+                    if (!userSnapshot.isEmpty()) {
+                        Boolean optedOut = userSnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
+                        if (optedOut != null && optedOut) {
+                            Toast.makeText(this, "User has opted out of notifications", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                     }
 
-                    Map<String, Object> notification = new HashMap<>();
-                    notification.put("recipientEmail", email);
-                    notification.put("recipientId", userId);
-                    notification.put("eventId", eventId);
-                    notification.put("eventName", eventName);
-                    notification.put("message", "You have been invited to join the waiting list for a private event.");
-                    notification.put("type", "PRIVATE_INVITE");
-                    notification.put("status", "pending");
-                    notification.put("timestamp", Timestamp.now());
+                    db.collection("events")
+                            .document(eventId)
+                            .get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                String eventName = documentSnapshot.getString("name");
+                                if (eventName == null || eventName.isEmpty()) {
+                                    eventName = "Private Event";
+                                }
 
-                    db.collection("notifications")
-                            .add(notification)
-                            .addOnSuccessListener(documentReference -> {
-                                documentReference.update("id", documentReference.getId());
-                                Toast.makeText(this, "Private invitation sent", Toast.LENGTH_SHORT).show();
+                                Map<String, Object> notification = new HashMap<>();
+                                notification.put("recipientEmail", email);
+                                notification.put("recipientId", userId);
+                                notification.put("eventId", eventId);
+                                notification.put("eventName", eventName);
+                                notification.put("message", "You have been invited to join the waiting list for a private event.");
+                                notification.put("type", "PRIVATE_INVITE");
+                                notification.put("status", "pending");
+                                notification.put("timestamp", Timestamp.now());
+
+                                db.collection("notifications")
+                                        .add(notification)
+                                        .addOnSuccessListener(documentReference -> {
+                                            documentReference.update("id", documentReference.getId());
+                                            Toast.makeText(this, "Private invitation sent", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
                             })
-                            .addOnFailureListener(e->
-                                    Toast.makeText(this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load event info", Toast.LENGTH_SHORT).show());
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(this, "Failed to load event info", Toast.LENGTH_SHORT).show());
+                });
     }
 }

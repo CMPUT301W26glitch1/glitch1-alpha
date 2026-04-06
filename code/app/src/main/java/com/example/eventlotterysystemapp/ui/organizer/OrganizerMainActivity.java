@@ -15,6 +15,7 @@ import com.example.eventlotterysystemapp.data.models.Participant;
 import com.example.eventlotterysystemapp.ui.LoginActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.sql.SQLOutput;
 import java.util.ArrayList;
@@ -37,7 +38,9 @@ public class OrganizerMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_organizer);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
+        boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
         // Retrieve the email passed from LoginActivity
         loggedInUserEmail = getIntent().getStringExtra("USER_EMAIL");
 
@@ -62,9 +65,15 @@ public class OrganizerMainActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(OrganizerMainActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
+                if (isAdmin) {
+                    // Simply go back to the Dashboard
+                    finish();
+                } else {
+                    // Standard Logout for regular organizers
+                    Intent intent = new Intent(OrganizerMainActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                }
             }
         });
     }

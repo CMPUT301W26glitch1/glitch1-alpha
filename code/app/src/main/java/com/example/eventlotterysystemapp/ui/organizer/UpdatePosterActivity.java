@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -38,6 +39,7 @@ public class UpdatePosterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_poster);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
 

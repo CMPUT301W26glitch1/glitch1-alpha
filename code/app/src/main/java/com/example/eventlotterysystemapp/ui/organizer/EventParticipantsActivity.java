@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class EventParticipantsActivity extends AppCompatActivity {
 
     private String eventId;
@@ -36,6 +38,7 @@ public class EventParticipantsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_participants);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
         db = FirebaseFirestore.getInstance();

@@ -19,6 +19,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class AdminNotificationLogsActivity extends AppCompatActivity {
 
     private RecyclerView recyclerNotificationLogs;
@@ -30,6 +32,7 @@ public class AdminNotificationLogsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_notification_logs);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
