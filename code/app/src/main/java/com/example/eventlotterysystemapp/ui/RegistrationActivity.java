@@ -27,10 +27,11 @@ import java.security.NoSuchAlgorithmException;
 
 public class RegistrationActivity extends AppCompatActivity {
     Button registerButton;
-    EditText username, password, email;
+    EditText username, password, email, phoneNumber;
     Spinner roles;
     ArrayAdapter<String> rolesAdapter;
     UserController usersdb;
+    Button returnButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,8 @@ public class RegistrationActivity extends AppCompatActivity {
         password = findViewById(R.id.password);
         email = findViewById(R.id.email);
         roles = findViewById(R.id.roles);
+        phoneNumber = findViewById(R.id.username2);
+        returnButton = findViewById(R.id.returnButton);
 
         String[] rolesList = new String[]{"Entrant", "Organizer", "Admin"};
         rolesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, rolesList);
@@ -57,12 +60,14 @@ public class RegistrationActivity extends AppCompatActivity {
         usersdb = new UserController(this);
 
         registerButton.setOnClickListener(v -> handleRegistration());
+        returnButton.setOnClickListener(v -> finish());
     }
 
     private void handleRegistration() {
         String rawPassword = password.getText().toString().trim();
         String userEmail = email.getText().toString().trim();
         String userRole = roles.getSelectedItem().toString();
+        String userPhoneNumber = phoneNumber.getText().toString().trim();
         String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
         if (rawPassword.isEmpty() || userEmail.isEmpty()) {
@@ -79,6 +84,15 @@ public class RegistrationActivity extends AppCompatActivity {
                 userRole,
                 deviceId
         );
+
+        if (!userPhoneNumber.isEmpty()) {
+            try {
+                user.setPhoneNumber(Integer.parseInt(userPhoneNumber));
+            } catch (NumberFormatException e) {
+                UiUtils.showNotification(this, "Error", "Invalid phone number");
+                return;
+            }
+        }
 
         usersdb.checkUser(user, new UserController.UserCallback() {
             @Override

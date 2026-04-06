@@ -99,8 +99,12 @@ public class NotificationActivity extends AppCompatActivity {
             return;
         }
 
-        String statusToMatch = selectedGroup.toLowerCase();
-        recipientEmails.clear();
+        String statusToMatch;
+        if (selectedGroup.equals("Waiting")) {
+            statusToMatch = "waitlist";
+        } else {
+            statusToMatch = selectedGroup.toLowerCase();
+        }
 
         db.collection("events")
                 .document(eventId)
@@ -108,47 +112,52 @@ public class NotificationActivity extends AppCompatActivity {
                 .whereEqualTo("status", statusToMatch)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String email = doc.getId(); // safer than doc.getString("email")
-                        if (email != null && !email.isEmpty()) {
-                            recipientEmails.add(email);
-                        }
-                    }
-
-                    if (recipientEmails.isEmpty()) {
+                    if (querySnapshot.isEmpty()) {
                         Toast.makeText(this, "No recipients found in " + selectedGroup, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    String currentTime = new SimpleDateFormat("MMM dd hh:mm", Locale.getDefault()).format(new Date());
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        // 1. Get the Email (Document ID) AND the UserID (stored inside the participant doc)
+                        String email = doc.getId();
+                        String userId = doc.getString("userId"); // Ensure your participants doc has this field!
 
-                    for (String email : recipientEmails) {
                         Map<String, Object> notification = new HashMap<>();
                         notification.put("recipientEmail", email);
+                        notification.put("recipientId", userId); // Added: Essential for Entrant query
                         notification.put("eventId", eventId);
                         notification.put("eventName", eventName);
                         notification.put("message", message);
-                        notification.put("type", selectedGroup.toLowerCase());
-                        notification.put("timestamp", Timestamp.now());
+
+                        // 2. Map spinner choice to Actionable Types for the Entrant side
+                        String type = statusToMatch;
+                        if (statusToMatch.equals("selected")) {
+                            type = "LOTTERY_WIN"; // This triggers Accept/Decline buttons
+                        }
+                        notification.put("type", type);
+
+                        // 3. Set status to pending so buttons show up
+                        notification.put("status", "pending");
+                        notification.put("timestamp", com.google.firebase.Timestamp.now());
 
                         db.collection("notifications").add(notification);
                     }
 
-                    Map<String, Object> log = new HashMap<>();
-                    log.put("message", message);
-                    log.put("sentBy", "Organizer");
-                    log.put("sentTo", selectedGroup);
-                    log.put("eventName", eventName);
-                    log.put("timestamp", currentTime);
+                    // ... keep your logging logic below ...
+                    saveLog(selectedGroup, message);
+                });
+    }
 
-                    db.collection("notificationLogs")
-                            .add(log)
-                            .addOnSuccessListener(unused ->
-                                    Toast.makeText(this, "Notification sent successfully", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(this, "Failed to log notification", Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load recipients", Toast.LENGTH_SHORT).show());
+    private void saveLog(String group, String msg) {
+        String currentTime = new SimpleDateFormat("MMM dd hh:mm", Locale.getDefault()).format(new Date());
+        Map<String, Object> log = new HashMap<>();
+        log.put("message", msg);
+        log.put("sentBy", "Organizer");
+        log.put("sentTo", group);
+        log.put("eventName", eventName);
+        log.put("timestamp", currentTime);
+
+        db.collection("notificationLogs").add(log)
+                .addOnSuccessListener(unused -> Toast.makeText(this, "Notifications sent!", Toast.LENGTH_SHORT).show());
     }
 }

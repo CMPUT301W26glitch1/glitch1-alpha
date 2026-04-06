@@ -97,14 +97,22 @@
         <activity
             android:name=".ui.AdminManageOrganizersActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.EntrantNotificationListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.organizer.InviteCoorgActivity"
+            android:exported="false" />
 
         <!-- TEAMMATE FEATURE -->
         <activity
             android:name=".ui.FilterActivity"
             android:exported="false" />
-        <activity android:name=".ui.EntrantEventDetailsActivity"
-            android:exported="false" />
+        <activity android:name=".ui.organizer.OrganizerEventCommentsActivity"/>
 
+        <activity
+            android:name=".ui.LotteryInfoActivity"
+            android:exported="false" />
 
     </application>
 

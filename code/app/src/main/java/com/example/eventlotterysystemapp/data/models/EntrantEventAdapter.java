@@ -1,165 +1,184 @@
 package com.example.eventlotterysystemapp.data.models;
 
+import static com.example.eventlotterysystemapp.data.models.UserSession.getUser;
+
 import android.content.Context;
-import android.content.Intent;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
-import com.example.eventlotterysystemapp.ui.EntrantEventDetailsActivity;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
 public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapter.ViewHolder> {
-    private List<Event> events;
     private Context context;
+    private List<Event> events;
+    private FirebaseFirestore db;
+    private String email;
 
-    public EntrantEventAdapter(Context context, List<Event> events) {
+    public EntrantEventAdapter(Context context, List<Event> events, String email) {
         this.context = context;
         this.events = events;
+        this.db = FirebaseFirestore.getInstance();
+        this.email = (email != null) ? email.toLowerCase().trim() : "";
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_event_entrant, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_event_entrant, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Event event = events.get(position);
-        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
-        String deviceId = android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-        // Using the email from your login (test3@gmail.com)
-        String userEmail = "test3@gmail.com";
-        holder.name.setText(event.getName());
-        if (event.getDateTime() != null) {
-            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd");
-            String dateStr = event.getDateTime().format(formatter);
+        if (event == null) return;
 
-            // If there's a location, let's show it next to the date
-            if (event.getLocation() != null && !event.getLocation().isEmpty()) {
-                holder.tvDate.setText("📅 " + dateStr + " • " + event.getLocation());
-            } else {
-                holder.tvDate.setText("📅 " + dateStr);
-            }
-        }
+        String eventId = event.getEventId();
 
-        // 3. Set Capacity (Showing current participants vs limit)
+        holder.eventName.setText(event.getName());
 
-        db.collection("events").document(event.getEventId())
-                .collection("participants")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    int actualCount = querySnapshot.size();
-                    holder.tvCapacity.setText("👥 " + actualCount + "/" + event.getListLimit());
-                });
-        // ... Keep your Join/Leave and 3-Dots logic here ...
-
-        // 1. Set the Event Name
-        if (event != null && event.getName() != null) {
-            holder.name.setText(event.getName());
+        if (event.getDateTimeAsDate() != null) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault());
+            holder.eventDate.setText("📅 " + sdf.format(event.getDateTimeAsDate()));
         } else {
-            holder.name.setText("Unnamed Event");
+            holder.eventDate.setText("📅 TBD");
         }
 
-        // 2. THE PERSISTENCE CHECK (Check Firestore so it doesn't "reset")
-        db.collection("events").document(event.getEventId())
-                .collection("participants").document(userEmail)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        holder.btnJoin.setText("Leave");
-                        holder.badge.setVisibility(View.VISIBLE);
+        db.collection("events")
+                .document(eventId)
+                .collection("participants")
+                .whereEqualTo("status", "waitlist")
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null || snapshot == null) return;
+
+                    int currentWaitlistSize = snapshot.size();
+                    int limit = event.getListLimit();
+
+                    // Logic for Unlimited size (Integer.MAX_VALUE or 0)
+                    String limitStr;
+                    if (limit == Integer.MAX_VALUE || limit <= 0) {
+                        limitStr = "\u221E"; // Infinity symbol (∞)
                     } else {
-                        holder.btnJoin.setText("Join");
-                        holder.badge.setVisibility(View.GONE);
+                        limitStr = String.valueOf(limit);
+                    }
+
+                    holder.eventCapacity.setText("👥 " + currentWaitlistSize + "/" + limitStr);
+
+                    // Button logic for full waitlist
+                    boolean isFull = (limit > 0 && limit != Integer.MAX_VALUE && currentWaitlistSize >= limit);
+
+                    if (isFull && "Join".equalsIgnoreCase(holder.btnJoin.getText().toString())) {
+                        holder.btnJoin.setEnabled(false);
+                        holder.btnJoin.setText("Full");
+                    } else {
+                        holder.btnJoin.setEnabled(true);
                     }
                 });
 
-        // 3. THREE-DOTS MENU (Passing the ID is critical for the Details Page!)
-        if (holder.ivEventOptions != null) {
-            holder.ivEventOptions.setOnClickListener(v -> {
-                android.widget.PopupMenu popup = new android.widget.PopupMenu(v.getContext(), v);
-                popup.getMenu().add("Event Details");
-                popup.setOnMenuItemClickListener(item -> {
-                    if (item.getTitle().equals("Event Details")) {
-                        android.content.Intent intent = new android.content.Intent(v.getContext(), EntrantEventDetailsActivity.class);
-                        intent.putExtra("EVENT_NAME", event.getName());
-                        intent.putExtra("EVENT_ID", event.getEventId()); // Matches the check in DetailsActivity
-                        v.getContext().startActivity(intent);
-                        return true;
-                    }
-                    return false;
-                });
-                popup.show();
-            });
+        Glide.with(context)
+                .load(event.getPosterUrl())
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .into(holder.eventPoster);
+
+        // --- Status & Button Logic ---
+        if (email == null || email.isEmpty()) {
+            holder.btnJoin.setEnabled(false);
+            return;
         }
 
-        // REPLACE YOUR JOIN/LEAVE ACTION (SECTION 4) WITH THIS:
+        final String[] currentStatus = {"none"};
+        DocumentReference userRef = db.collection("events")
+                .document(eventId)
+                .collection("participants")
+                .document(email);
 
-// US 01.07.01: Identify by Device ID instead of hardcoded email
+        userRef.addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                android.util.Log.e("FIRESTORE_STATUS", "Listen failed.", e);
+                return;
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                String status = snapshot.getString("status");
+                currentStatus[0] = (status == null || status.isEmpty()) ? "none" : status;
+
+                android.util.Log.d("FIRESTORE_STATUS", "Event: " + event.getName() + " | Status Found: " + currentStatus[0]);
+
+                if ("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) {
+                    holder.btnJoin.setText("Join");
+                } else {
+                    holder.btnJoin.setText("Leave");
+                }
+            } else {
+                currentStatus[0] = "none";
+                android.util.Log.d("FIRESTORE_STATUS", "No document for " + event.getName() + ". Setting status to none.");
+                holder.btnJoin.setText("Join");
+            }
+        });
 
         holder.btnJoin.setOnClickListener(v -> {
-            boolean isCurrentlyJoined = holder.btnJoin.getText().toString().equalsIgnoreCase("Leave");
+            String buttonText = holder.btnJoin.getText().toString();
+            String status = currentStatus[0];
 
-            // Use deviceId as the document name to stay "301 Compliant"
-            com.google.firebase.firestore.DocumentReference pRef = db.collection("events")
-                    .document(event.getEventId())
-                    .collection("participants")
-                    .document(deviceId);
+            // Debug
+            android.util.Log.d("BUTTON_CLICK", "Button: " + buttonText + " | Status: " + status);
 
-            if (!isCurrentlyJoined) {
-                // JOINING: Matches US 01.01.01
-                java.util.Map<String, Object> participantData = new java.util.HashMap<>();
-                participantData.put("deviceId", deviceId);
-                participantData.put("email", userEmail); // Keep email for contact info (US 01.02.01)
-                participantData.put("status", "waiting"); // Matches User Story terminology
-                participantData.put("joinedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+            if ("Join".equalsIgnoreCase(buttonText)) {
+                if (status == null || status.isEmpty() || "none".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
 
-                pRef.set(participantData).addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Added to Waiting List", Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(position);
-                });
+                    Participant participant = new Participant(email, "waitlist");
+
+                    userRef.set(participant)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(err -> {
+                                android.util.Log.e("FIRESTORE_ERROR", err.getMessage());
+                                Toast.makeText(context, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    // This handles cases where status might be "selected" or "enrolled"
+                    Toast.makeText(context, "Cannot join. Current status: " + status, Toast.LENGTH_SHORT).show();
+                }
 
             } else {
-                // LEAVING: Matches US 01.01.02
-                pRef.delete().addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Left Waiting List", Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(position);
-                });
+                // LEAVE LOGIC
+                userRef.update("status", "cancelled")
+                        .addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(err -> {
+                            userRef.set(new Participant(email, "cancelled"));
+                        });
             }
         });
     }
+
     @Override
-    public int getItemCount() {
-        return events != null ? events.size() : 0;
-    }
+    public int getItemCount() { return events != null ? events.size() : 0; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, tvDate, tvCapacity, badge;
+        TextView eventName, eventDate, eventCapacity; // Add eventCapacity here
+        ImageView eventPoster;
         Button btnJoin;
-        ImageButton ivEventOptions;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.eventName);
-            tvDate = itemView.findViewById(R.id.eventDate);       // Matches @id/eventDate
-            tvCapacity = itemView.findViewById(R.id.eventCapacity); // Matches @id/eventCapacity
-            badge = itemView.findViewById(R.id.tvJoinedBadge);     // Matches @id/tvJoinedBadge
-            btnJoin = itemView.findViewById(R.id.btnJoin);         // Matches @id/btnJoin
-            ivEventOptions = itemView.findViewById(R.id.btnThreeDotsMenu); // Matches @id/btnThreeDotsMenu
+            eventName = itemView.findViewById(R.id.eventName);
+            eventDate = itemView.findViewById(R.id.eventDate);
+            eventCapacity = itemView.findViewById(R.id.eventCapacity); // Link it here
+            eventPoster = itemView.findViewById(R.id.eventPoster);
+            btnJoin = itemView.findViewById(R.id.btnJoin);
         }
     }
-
-   }
+}

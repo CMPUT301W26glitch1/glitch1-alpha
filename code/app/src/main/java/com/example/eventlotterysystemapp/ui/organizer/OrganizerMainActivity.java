@@ -98,7 +98,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                                             Event event = document.toObject(Event.class);
                                             event.setEventId(document.getId());
                                             eventList.add(event);
-                                            addTestParticipant(event.getEventId());
+                                            //addTestParticipant(event.getEventId());
                                         }
                                     }
                                     adapter.notifyDataSetChanged();
@@ -117,7 +117,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // We only need email and status here
-        String testEmail = "test1@gmail.com";
+        String testEmail = "ent1@gmail.com";
         String testEmail1 = "org3@test.com";
         Participant testParticipant = new Participant(testEmail, "waitlist");
         Participant testParticipant1 = new Participant(testEmail1, "enrolled");
