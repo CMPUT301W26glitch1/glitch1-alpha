@@ -11,26 +11,29 @@ public class NotificationManager {
 
     /**
      * Sends a notification to a specific user.
-     * Updated to include recipientEmail and status for actionable items.
+     * Respects the user's notificationsOptedOut preference before sending.
      */
     public void sendNotification(String recipientId, String recipientEmail, String message, String type, String eventId) {
 
-        db.collection("users").document(recipientId).get().addOnSuccessListener(doc -> {
-            Boolean notificationsEnabled = doc.contains("notificationsEnabled") ?
-                    doc.getBoolean("notificationsEnabled") : true;
+        db.collection("users")
+                .whereEqualTo("email", recipientEmail)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        Boolean optedOut = querySnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
+                        if (Boolean.TRUE.equals(optedOut)) return;
+                    }
 
-            if (Boolean.FALSE.equals(notificationsEnabled)) return;
+                    Map<String, Object> notif = new HashMap<>();
+                    notif.put("recipientId", recipientId);
+                    notif.put("recipientEmail", recipientEmail);
+                    notif.put("message", message);
+                    notif.put("type", type);
+                    notif.put("eventId", eventId);
+                    notif.put("status", "pending");
+                    notif.put("timestamp", FieldValue.serverTimestamp());
 
-            Map<String, Object> notif = new HashMap<>();
-            notif.put("recipientId", recipientId);
-            notif.put("recipientEmail", recipientEmail);
-            notif.put("message", message);
-            notif.put("type", type);
-            notif.put("eventId", eventId);
-            notif.put("status", "pending");
-            notif.put("timestamp", FieldValue.serverTimestamp());
-
-            db.collection("notifications").add(notif);
-        });
+                    db.collection("notifications").add(notif);
+                });
     }
 }
