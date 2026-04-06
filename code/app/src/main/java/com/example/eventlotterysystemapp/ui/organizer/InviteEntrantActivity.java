@@ -83,11 +83,13 @@ public class InviteEntrantActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         String name = doc.getString("name");
                         String email = doc.getString("email");
+                        Object phone = doc.get("phoneNumber");
 
                         String safeName = name != null ? name : "";
                         String safeEmail = email != null ? email : "";
+                        String safePhone = phone != null ? phone.toString() : "";
 
-                        if (safeName.toLowerCase().contains(query) || safeEmail.toLowerCase().contains(query)) {
+                        if (safeName.toLowerCase().contains(query) || safeEmail.toLowerCase().contains(query) || safePhone.toLowerCase().contains(query)) {
                             entrantResults.add(safeName + " - " + safeEmail);
                             entrantIds.add(doc.getId());
                         }

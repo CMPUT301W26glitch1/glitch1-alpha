@@ -172,6 +172,70 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Entrant Mode -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardSwitchEntrant"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_blue"
+                android:src="@android:drawable/ic_menu_search"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Switch to Entrant Mode"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Organizer Mode -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardSwitchOrganizer"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/icon_bg_orange"
+                android:src="@android:drawable/ic_menu_edit"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Switch to Organizer Mode"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#E65100"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
