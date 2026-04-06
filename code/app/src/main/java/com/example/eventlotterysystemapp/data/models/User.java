@@ -10,6 +10,8 @@ public class User {
     private String role;
     private String lastDeviceId;
     private Integer phoneNumber;
+    private boolean notificationsOptedOut;
+
 
     public User(String name, String password, String email, String role, String lastDeviceId) {
         this.name = name;
@@ -66,5 +68,11 @@ public class User {
 
     public void setLastDeviceId(String lastDeviceId) {
         this.lastDeviceId = lastDeviceId;
+    }
+
+    public boolean isNotificationsOptedOut() { return notificationsOptedOut; }
+
+    public void setNotificationsOptedOut(boolean notificationsOptedOut) {
+        this.notificationsOptedOut = notificationsOptedOut;
     }
 }
