@@ -118,8 +118,11 @@
             android:name=".ui.SettingsActivity"
             android:exported="false" />
         <activity android:name=".ui.EventHistoryActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             android:exported="false" />
         <activity android:name=".ui.EntrantCommentActivity" />
+      
+        <activity android:name=".ui.EventPreviewActivity" />
 
     </application>
 
