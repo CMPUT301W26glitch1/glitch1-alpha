@@ -125,7 +125,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
     private void deleteUserProfile() {
         // Using user.getName() because that is your current document ID
-        String documentId = user.getName();
+        String documentId = user.getEmail();
 
         if (documentId != null && !documentId.isEmpty()) {
             FirebaseFirestore.getInstance().collection("users")
