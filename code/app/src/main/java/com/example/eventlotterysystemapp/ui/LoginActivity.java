@@ -114,9 +114,8 @@ public class LoginActivity extends AppCompatActivity {
                             );
                             adminUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(adminUser);
-                            Intent intent = new Intent(this, AdminDashboardActivity.class);
-                            intent.putExtra("USER_EMAIL", email);
-                            startActivity(intent);
+                            startActivity(new Intent(this, AdminDashboardActivity.class));
+                            finish();
                             break;
 
                         case "Organizer":
@@ -129,7 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                             );
                             organizerUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(organizerUser);
-                            intent = new Intent(this, OrganizerMainActivity.class);
+                            Intent intent = new Intent(this, OrganizerMainActivity.class);
                             intent.putExtra("USER_EMAIL", email);
                             startActivity(intent);
                             finish();
