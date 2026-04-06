@@ -118,6 +118,7 @@ public class AdminManageImagesActivity extends AppCompatActivity {
             }
 
             holder.btnDelete.setOnClickListener(v -> deleteImage(doc.getId()));
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override

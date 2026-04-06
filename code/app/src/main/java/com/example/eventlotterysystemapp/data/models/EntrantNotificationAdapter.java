@@ -63,18 +63,7 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
         holder.btnAccept.setOnClickListener(v -> handleResponse(notification, "accepted", position));
         holder.btnDecline.setOnClickListener(v -> handleResponse(notification, "declined", position));
 
-        if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
-            float msgSize = holder.tvMessage.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
-            holder.tvMessage.setTextSize(msgSize + 6);
-
-            float timeSize = holder.tvTimestamp.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
-            holder.tvTimestamp.setTextSize(timeSize + 4);
-
-            holder.btnAccept.setTextSize(25);
-            holder.btnDecline.setTextSize(25);
-            holder.btnAccept.setMinHeight(120);
-            holder.btnDecline.setMinHeight(120);
-        }
+        holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
     }
 
     private void handleResponse(Notification notification, String action, int position) {
@@ -114,9 +103,8 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
                                         notification.setStatus(action);
                                         notifyItemChanged(position);
                                     })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show();
-                                    });
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show());
                         } else {
                             Toast.makeText(context, "Invitation declined", Toast.LENGTH_SHORT).show();
                             notification.setStatus(action);
@@ -133,14 +121,12 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
                                     notification.setStatus(action);
                                     notifyItemChanged(position);
                                 })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show();
-                                });
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(context, "Error updating status", Toast.LENGTH_SHORT).show());
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Error updating notification", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(context, "Error updating notification", Toast.LENGTH_SHORT).show());
     }
 
     @Override
