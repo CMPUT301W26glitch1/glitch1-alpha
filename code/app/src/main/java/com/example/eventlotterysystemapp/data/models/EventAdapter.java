@@ -102,6 +102,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             holder.btnInvite.setVisibility(View.GONE);
             holder.btnQR.setVisibility(View.VISIBLE);
         }
+
+        AccessibilityUtils.applyToItemView(context, holder.itemView);
     }
 
     @Override

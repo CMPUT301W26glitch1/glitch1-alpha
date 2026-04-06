@@ -16,6 +16,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 // AdminEventDetailActivity displays the full details of a single event.
 // It fetches the event document directly from Firestore to get all fields
 // including dateTime, regStart, regEnd, geolocationReq, and posterUrl.
@@ -30,6 +32,7 @@ public class AdminEventDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_event_detail);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         db = FirebaseFirestore.getInstance();
 

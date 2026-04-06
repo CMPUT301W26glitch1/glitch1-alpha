@@ -8,18 +8,20 @@
         android:id="@+id/mainTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:text="My Events"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:textSize="28sp"
+        android:textStyle="bold"/>
 
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/ivOrganizerOptions"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:text="Logout" />
+        android:src="@android:drawable/ic_menu_more"
+        android:padding="4dp"
+        android:contentDescription="Options"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -27,6 +29,7 @@
         android:layout_height="match_parent"
         android:layout_below="@id/mainTitle"
         android:layout_above="@id/btnCreateEvent"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp" />
 
     <Button

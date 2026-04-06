@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
@@ -25,9 +26,15 @@ public class QRCodeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_code);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         imageQR = findViewById(R.id.imageQR);
         returnBtn = findViewById(R.id.returnBtn);
+
+        if (AccessibilityUtils.isAccessibilityModeOn(this)) {
+            returnBtn.setTextSize(16);
+            returnBtn.setMinHeight(90);
+        }
 
         String eventId = getIntent().getStringExtra("EVENT_ID");
         boolean isPrivate = getIntent().getBooleanExtra("IS_PRIVATE", false);

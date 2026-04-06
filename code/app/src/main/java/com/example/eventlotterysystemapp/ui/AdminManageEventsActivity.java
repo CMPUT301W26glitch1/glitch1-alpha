@@ -37,6 +37,7 @@ public class AdminManageEventsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_events);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -131,6 +132,10 @@ public class AdminManageEventsActivity extends AppCompatActivity {
                 intent.putExtra("isAdminView", true);
                 startActivity(intent);
             });
+
+            holder.itemView.post(() ->
+                    AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView)
+            );
         }
 
         @Override

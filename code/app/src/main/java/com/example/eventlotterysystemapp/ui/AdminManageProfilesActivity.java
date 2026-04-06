@@ -20,6 +20,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 // AdminManageProfilesActivity fetches all user profiles from Firestore
 // and displays them in a scrollable list. Tapping a profile opens its detail screen.
 public class AdminManageProfilesActivity extends AppCompatActivity {
@@ -35,6 +37,7 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_profiles);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         // set up toolbar with back arrow
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -117,6 +120,7 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
                                 : null);
                 startActivity(intent);
             });
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override

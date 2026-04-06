@@ -20,6 +20,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class AdminManageOrganizersActivity extends AppCompatActivity {
 
     private RecyclerView recyclerOrganizers;
@@ -31,6 +33,7 @@ public class AdminManageOrganizersActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_organizers);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,6 +108,7 @@ public class AdminManageOrganizersActivity extends AppCompatActivity {
 
             holder.btnDelete.setOnClickListener(v ->
                     deleteOrganizer(doc.getId()));
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override
