@@ -1,6 +1,10 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -12,7 +16,9 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Comment;
 import com.example.eventlotterysystemapp.data.models.CommentAdapter;
 import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+import com.google.firebase.Timestamp; // Added import
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -21,9 +27,15 @@ import java.util.List;
 public class OrganizerEventCommentsActivity extends AppCompatActivity {
 
     private RecyclerView rvComments;
+    private EditText etCommentInput;
+    private Button btnPostComment;
     private CommentAdapter commentAdapter;
     private List<Comment> commentList;
     private String eventId;
+
+    private boolean isAdminView = false;
+    private String currentUserId;
+    private String currentUserName;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -32,10 +44,16 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
         AccessibilityUtils.applyAccessibilityMode(this);
 
         rvComments = findViewById(R.id.rvComments);
+        etCommentInput = findViewById(R.id.etCommentInput);
+        btnPostComment = findViewById(R.id.btnPostComment);
+
         rvComments.setLayoutManager(new LinearLayoutManager(this));
 
         commentList = new ArrayList<>();
         eventId = getIntent().getStringExtra("eventId");
+        isAdminView = getIntent().getBooleanExtra("isAdminView", false);
+        currentUserId = getIntent().getStringExtra("userId");
+        currentUserName = getIntent().getStringExtra("userName");
 
         if (eventId == null || eventId.isEmpty()) {
             Toast.makeText(this, "Event ID is missing", Toast.LENGTH_SHORT).show();
@@ -43,10 +61,60 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
             return;
         }
 
+        if (isAdminView) {
+            etCommentInput.setVisibility(View.GONE);
+            btnPostComment.setVisibility(View.GONE);
+        }
+
         commentAdapter = new CommentAdapter(this, commentList, eventId);
         rvComments.setAdapter(commentAdapter);
 
+        btnPostComment.setOnClickListener(v -> postComment());
+
         loadComments();
+    }
+
+    public void goBackToMyEvents(View view) {
+        finish();
+    }
+
+    private void postComment() {
+        String text = etCommentInput.getText().toString().trim();
+
+        if (text.isEmpty()) {
+            Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        String commentId = db.collection("events")
+                .document(eventId)
+                .collection("comments")
+                .document()
+                .getId();
+
+        String userId = (currentUserId != null && !currentUserId.isEmpty()) ? currentUserId : "unknown_user";
+        String userName = (currentUserName != null && !currentUserName.isEmpty()) ? currentUserName : "Organizer";
+
+        // FIXED: Use Firebase Timestamp instead of long System.currentTimeMillis()
+        Timestamp timestamp = Timestamp.now();
+
+        Comment comment = new Comment(commentId, text, userId, userName, timestamp);
+
+        db.collection("events")
+                .document(eventId)
+                .collection("comments")
+                .document(commentId)
+                .set(comment)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(this, "Comment posted", Toast.LENGTH_SHORT).show();
+                    etCommentInput.setText("");
+                    loadComments();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to post comment: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void loadComments() {
@@ -54,14 +122,21 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
                 .collection("events")
                 .document(eventId)
                 .collection("comments")
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Optional: Sort by newest first
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     commentList.clear();
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Comment comment = doc.toObject(Comment.class);
-                        comment.setCommentId(doc.getId());
-                        commentList.add(comment);
+                        try {
+                            // FIXED: This will now properly use the updated Comment model with Timestamp
+                            Comment comment = doc.toObject(Comment.class);
+                            comment.setCommentId(doc.getId());
+                            commentList.add(comment);
+                        } catch (Exception e) {
+                            // Catching deserialization errors prevents the app from crashing on bad data
+                            Log.e("Firestore", "Error deserializing comment: " + e.getMessage());
+                        }
                     }
 
                     commentAdapter.notifyDataSetChanged();
