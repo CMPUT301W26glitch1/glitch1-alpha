@@ -20,6 +20,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 // AdminManageProfilesActivity fetches all user profiles from Firestore
 // and displays them in a scrollable list. Tapping a profile opens its detail screen.
 public class AdminManageProfilesActivity extends AppCompatActivity {
@@ -35,6 +37,7 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_profiles);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         // set up toolbar with back arrow
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -66,16 +69,16 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
     // fetch all documents from the users collection
     private void loadProfiles() {
         db.collection("users")
-            .get()
-            .addOnSuccessListener(querySnapshot -> {
-                profileList.clear();
-                for (QueryDocumentSnapshot doc : querySnapshot) {
-                    profileList.add(doc);
-                }
-                adapter.notifyDataSetChanged();
-            })
-            .addOnFailureListener(e ->
-                Toast.makeText(this, "Error loading profiles: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    profileList.clear();
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        profileList.add(doc);
+                    }
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error loading profiles: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     // adapter that binds each Firestore user document to a row in the RecyclerView
@@ -85,7 +88,7 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
         @Override
         public ProfileViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_profile, parent, false);
+                    .inflate(R.layout.item_profile, parent, false);
             return new ProfileViewHolder(view);
         }
 
@@ -110,7 +113,11 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
                 intent.putExtra("profileName", name);
                 intent.putExtra("profileEmail", email);
                 intent.putExtra("profileRole", role);
-                intent.putExtra("profilePhone", doc.getString("phone"));
+                Long phone = doc.getLong("phoneNumber");
+                intent.putExtra("profilePhone",
+                        (phone != null && phone != -1)
+                                ? String.valueOf(phone)
+                                : null);
                 startActivity(intent);
             });
         }

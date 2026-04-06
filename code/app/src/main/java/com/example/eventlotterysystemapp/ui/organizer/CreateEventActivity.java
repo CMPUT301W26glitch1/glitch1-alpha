@@ -25,13 +25,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 /**
  * Screen for organizer to create an event.
  * Updated: Resolves Email to Randomized User ID before saving to Firestore.
  */
 public class CreateEventActivity extends AppCompatActivity {
     private String organizerEmail;
-    private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace, listLimit;
+    private EditText eventTitle, eventDescription, category, eventTime, regStart, regEnd, eventPlace, listLimit, maxParticipants;
     private Switch geoSwitch, eventSwitch;
     private Button nextBtn;
     private EventController eventController;
@@ -53,6 +55,7 @@ public class CreateEventActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         organizerEmail = getIntent().getStringExtra("USER_EMAIL");
         eventController = new EventController(this);
@@ -66,6 +69,7 @@ public class CreateEventActivity extends AppCompatActivity {
         eventPlace = findViewById(R.id.eventPlace);
         geoSwitch = findViewById(R.id.geoLocation);
         eventSwitch = findViewById(R.id.privateEventSwitch);
+        maxParticipants = findViewById(R.id.maxParticipants);
         listLimit = findViewById(R.id.listLimit);
         nextBtn = findViewById(R.id.nextBtn);
         eventPoster = findViewById(R.id.eventPoster);
@@ -91,7 +95,6 @@ public class CreateEventActivity extends AppCompatActivity {
             return;
         }
 
-        // 1. First, find the real randomized Document ID for this email
         FirebaseFirestore.getInstance().collection("users")
                 .whereEqualTo("email", organizerEmail)
                 .get()
@@ -111,20 +114,23 @@ public class CreateEventActivity extends AppCompatActivity {
      */
     private void proceedWithSave(String organizerId) {
         String limitStr = listLimit.getText().toString().trim();
-        int finalLimit;
+        int waitlistLimitTemp = limitStr.isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(limitStr);
 
-        if (limitStr.isEmpty()) {
-            finalLimit = Integer.MAX_VALUE;
+        String maxPartsStr = maxParticipants.getText().toString().trim();
+        int maxParticipantsTemp;
+        if (maxPartsStr.isEmpty()) {
+            maxParticipantsTemp = Integer.MAX_VALUE;
         } else {
             try {
-                finalLimit = Integer.parseInt(limitStr);
+                maxParticipantsTemp = Integer.parseInt(maxPartsStr);
             } catch (NumberFormatException e) {
-                finalLimit = Integer.MAX_VALUE;
+                maxParticipantsTemp = Integer.MAX_VALUE;
             }
         }
 
-        final int finalLimitToSave = finalLimit;
-        boolean isPrivate = eventSwitch.isChecked();
+        final int finalWaitlistLimit = waitlistLimitTemp;
+        final int finalMaxParticipants = maxParticipantsTemp;
+        final boolean isPrivate = eventSwitch.isChecked();
 
         Event event = new Event(
                 eventTitle.getText().toString(),
@@ -137,7 +143,8 @@ public class CreateEventActivity extends AppCompatActivity {
                 geoSwitch.isChecked(),
                 organizerId,
                 null,
-                finalLimitToSave,
+                finalWaitlistLimit,
+                finalMaxParticipants,
                 isPrivate
         );
 
@@ -147,7 +154,8 @@ public class CreateEventActivity extends AppCompatActivity {
 
             docRef.update("eventId", eventId);
             docRef.update("privateEvent", isPrivate);
-            docRef.update("listLimit", finalLimitToSave);
+            docRef.update("listLimit", finalWaitlistLimit);
+            docRef.update("maxParticipants", finalMaxParticipants);
 
             if (selectedImageUri != null) {
                 StorageController storageController = new StorageController();

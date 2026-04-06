@@ -18,6 +18,7 @@ import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
 import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.List;
 

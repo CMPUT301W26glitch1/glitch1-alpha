@@ -1,4 +1,5 @@
 package com.example.eventlotterysystemapp.data.models;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,11 +12,12 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
-import com.example.eventlotterysystemapp.data.models.Notification;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.util.List;
-import com.example.eventlotterysystemapp.data.models.Participant;
+import java.util.Map;
 
 public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNotificationAdapter.ViewHolder> {
 
@@ -42,15 +44,14 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
 
         holder.tvMessage.setText(notification.getMessage());
 
-        // Format timestamp if needed, otherwise just show relative time
         holder.tvTimestamp.setText(notification.getTimestamp() != null ?
                 notification.getTimestamp().toDate().toString() : "");
 
-        // Determine if this is an "Actionable" notification
         String type = notification.getType();
-        boolean isActionable = "LOTTERY_WIN".equals(type) || "PRIVATE_INVITE".equals(type);
+        boolean isActionable = "LOTTERY_WIN".equals(type) ||
+                "PRIVATE_INVITE".equals(type) ||
+                "COORG_INVITE".equals(type);
 
-        // Only show buttons if it's actionable AND hasn't been responded to yet
         if (isActionable && "pending".equals(notification.getStatus())) {
             holder.btnAccept.setVisibility(View.VISIBLE);
             holder.btnDecline.setVisibility(View.VISIBLE);
@@ -59,21 +60,49 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
             holder.btnDecline.setVisibility(View.GONE);
         }
 
-        // Set button listeners
         holder.btnAccept.setOnClickListener(v -> handleResponse(notification, "accepted", position));
         holder.btnDecline.setOnClickListener(v -> handleResponse(notification, "declined", position));
+
+        if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
+            float msgSize = holder.tvMessage.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
+            holder.tvMessage.setTextSize(msgSize + 6);
+
+            float timeSize = holder.tvTimestamp.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
+            holder.tvTimestamp.setTextSize(timeSize + 4);
+
+            holder.btnAccept.setTextSize(25);
+            holder.btnDecline.setTextSize(25);
+            holder.btnAccept.setMinHeight(120);
+            holder.btnDecline.setMinHeight(120);
+        }
     }
 
-    /**
-     * Handles the Entrant's choice to accept or decline (US 01.05.07 / 01.05.02)
-     */
     private void handleResponse(Notification notification, String action, int position) {
         db.collection("notifications").document(notification.getId())
                 .update("status", action)
                 .addOnSuccessListener(aVoid -> {
                     String type = notification.getType();
 
-                    if ("PRIVATE_INVITE".equals(type)) {
+                    if ("COORG_INVITE".equals(type)) {
+                        if ("accepted".equals(action)) {
+                            Map<String, Object> participant = new HashMap<>();
+                            participant.put("email", notification.getRecipientEmail());
+                            participant.put("status", "co-organizer");
+
+                            db.collection("events").document(notification.getEventId())
+                                    .collection("participants").document(notification.getRecipientEmail())
+                                    .set(participant)
+                                    .addOnSuccessListener(unused -> {
+                                        Toast.makeText(context, "You are now a Co-Organizer!", Toast.LENGTH_SHORT).show();
+                                        notification.setStatus(action);
+                                        notifyItemChanged(position);
+                                    });
+                        } else {
+                            Toast.makeText(context, "Invitation declined", Toast.LENGTH_SHORT).show();
+                            notification.setStatus(action);
+                            notifyItemChanged(position);
+                        }
+                    } else if ("PRIVATE_INVITE".equals(type)) {
                         if ("accepted".equals(action)) {
                             Participant participant = new Participant(notification.getRecipientEmail(), "waitlist");
 

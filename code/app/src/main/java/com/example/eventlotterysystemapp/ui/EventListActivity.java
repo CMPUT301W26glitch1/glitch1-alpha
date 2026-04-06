@@ -8,6 +8,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,12 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
-import com.example.eventlotterysystemapp.data.models.NotificationManager;
-import com.example.eventlotterysystemapp.data.models.EntrantEventAdapter; // Ensure this import matches your project
+import com.example.eventlotterysystemapp.data.models.EntrantEventAdapter;
 import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.ArrayList;
 
@@ -37,6 +40,12 @@ public class EventListActivity extends AppCompatActivity {
     private EntrantEventAdapter adapter;
     private FirebaseFirestore db;
     private String loggedInUserEmail;
+    private ActivityResultLauncher<Intent> settingsLauncher;
+
+    // Track current search and filter state so they can be combined
+    private String currentSearchQuery = "";
+    private String currentFilterAvail = null;
+    private String currentFilterInterest = null;
 
     private static final int FILTER_REQUEST_CODE = 200;
 
@@ -44,9 +53,20 @@ public class EventListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
+        settingsLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        recreate();
+                    }
+                }
+        );
+
+        boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
         loggedInUserEmail = getIntent().getStringExtra("USER_EMAIL");
-        // 1. Initialize UI
+
         eventRecyclerView = findViewById(R.id.eventRecyclerView);
         searchView = findViewById(R.id.searchEvents);
         btnFilter = findViewById(R.id.btnFilter);
@@ -58,50 +78,50 @@ public class EventListActivity extends AppCompatActivity {
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         fabNotifications.setOnClickListener(v -> {
-            // sendTestNotification();
             Intent intent = new Intent(EventListActivity.this, EntrantNotificationListActivity.class);
             intent.putExtra("USER_EMAIL", loggedInUserEmail);
             startActivity(intent);
         });
 
-        // 2. Data setup
         allEvents = new ArrayList<>();
         filteredEvents = new ArrayList<>();
 
-        // Pass 'this' as context for Glide/Layout inflation
-        adapter = new EntrantEventAdapter(this, filteredEvents);
+        adapter = new EntrantEventAdapter(this, filteredEvents, loggedInUserEmail);
         eventRecyclerView.setAdapter(adapter);
 
-        // 3. Initialize Firebase and Start Listening
         db = FirebaseFirestore.getInstance();
         startFirebaseListener();
 
-        // 4. Click Listeners
         tvUserIcon.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
 
         ivMainOptions.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, v);
-            popup.getMenu().add("Refresh List"); // This will now trigger the listener update
+            popup.getMenu().add("Refresh List");
+            popup.getMenu().add("Lottery Info");
             popup.getMenu().add("Settings");
             popup.getMenu().add("Logout");
 
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getTitle().equals("Refresh List")) {
-                    startFirebaseListener(); // Re-triggering refresh
+                    startFirebaseListener();
+                    return true;
+                } else if (item.getTitle().equals("Lottery Info")) {
+                    startActivity(new Intent(EventListActivity.this, LotteryInfoActivity.class));
+                    return true;
+                } else if (item.getTitle().equals("Settings")) {
+                    settingsLauncher.launch(new Intent(EventListActivity.this, SettingsActivity.class));
                     return true;
                 } else if (item.getTitle().equals("Logout")) {
-                    // 1. Create the Intent to go back to the Sign In page
-                    // (Change 'SignInActivity.class' to the actual name of your login file!)
-                    Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
-
-                    // 2. Clear the history so they can't "Back" into the app after logging out
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    startActivity(intent);
-
-                    // 3. Optional: Show a toast
-                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-                    finish();
+                    if (isAdmin) {
+                        finish();
+                        Toast.makeText(this, "Returning to Admin Panel", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
                     return true;
                 }
                 return false;
@@ -114,7 +134,6 @@ public class EventListActivity extends AppCompatActivity {
             startActivityForResult(intent, FILTER_REQUEST_CODE);
         });
 
-        // 5. Search Logic
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -123,7 +142,8 @@ public class EventListActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                filterBySearch(newText);
+                currentSearchQuery = (newText == null) ? "" : newText.trim();
+                applyAllFilters();
                 return true;
             }
         });
@@ -133,110 +153,128 @@ public class EventListActivity extends AppCompatActivity {
         db.collection("events")
                 .whereEqualTo("privateEvent", false)
                 .addSnapshotListener((value, error) -> {
-            if (error != null) {
-                Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (value != null) {
-                allEvents.clear();
-                for (QueryDocumentSnapshot doc : value) {
-                    Event event = doc.toObject(Event.class);
-                    event.setEventId(doc.getId());
-                    allEvents.add(event);
-                }
-                filteredEvents.clear();
-                filteredEvents.addAll(allEvents);
-                adapter.notifyDataSetChanged();
-            }
-        });
-    }
-
-    private void filterBySearch(String text) {
-        filteredEvents.clear();
-        for (Event event : allEvents) {
-            if (event.getName() != null && event.getName().toLowerCase().contains(text.toLowerCase())) {
-                filteredEvents.add(event);
-            }
-        }
-        adapter.notifyDataSetChanged();
+                    if (error != null) {
+                        Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (value != null) {
+                        allEvents.clear();
+                        for (QueryDocumentSnapshot doc : value) {
+                            Event event = doc.toObject(Event.class);
+                            event.setEventId(doc.getId());
+                            allEvents.add(event);
+                        }
+                        applyAllFilters();
+                    }
+                });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FILTER_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            String avail = data.getStringExtra("AVAIL");
-            String interest = data.getStringExtra("INTEREST");
-            applyAdvancedFilters(avail, interest);
+            currentFilterAvail = data.getStringExtra("AVAIL");
+            currentFilterInterest = data.getStringExtra("INTEREST");
+        } else if (requestCode == FILTER_REQUEST_CODE) {
+            currentFilterAvail = null;
+            currentFilterInterest = null;
+            Toast.makeText(this, "Filters Reset", Toast.LENGTH_SHORT).show();
         }
-        else{
-            resetFilters();
-        }
-
-
-        }
-private void resetFilters() {
-    filteredEvents.clear();
-    filteredEvents.addAll(allEvents);
-    adapter.notifyDataSetChanged();
-    Toast.makeText(this, "Filters Reset", Toast.LENGTH_SHORT).show();
-}
-
-    private void applyAdvancedFilters(String avail, String interest) {
-        filteredEvents.clear();
-
-        // 1. Handle nulls and convert to lowercase
-        String filterAvail = (avail == null) ? "all" : avail.toLowerCase();
-        String filterInterest = (interest == null) ? "all" : interest.toLowerCase();
-
-        for (Event event : allEvents) {
-            // Use the actual data from your Event object
-            String name = (event.getName() != null) ? event.getName().toLowerCase() : "";
-            String category = (event.getCategory() != null) ? event.getCategory().toLowerCase() : "";
-
-            // 2. The Logic:
-            // Match if the filter is "All" OR if the category/name contains the filter word
-            boolean matchAvail = filterAvail.equals("all") || filterAvail.equals("availability")
-                    || name.contains(filterAvail);
-
-            boolean matchInterest = filterInterest.equals("all") || filterInterest.equals("interests")
-                    || category.contains(filterInterest)
-                    || name.contains(filterInterest);
-
-            if (matchAvail && matchInterest) {
-                filteredEvents.add(event);
-            }
-        }
-
-        // 3. Tell the adapter to refresh the screen with the new filtered list
-        adapter.notifyDataSetChanged();
-
-        if (filteredEvents.isEmpty()) {
-            Toast.makeText(this, "No events match those filters", Toast.LENGTH_SHORT).show();
-        }
+        applyAllFilters();
     }
 
     /**
-     * Temporary test method to verify notification delivery and UI display.
-     * This simulates an organizer sending a lottery win notification.
+     * Single entry point for all filtering. Always runs search first,
+     * then applies availability and interest filters on top of the search results.
+     * This ensures 01.01.06 - search and filter always work together.
      */
-    private void sendTestNotification() {
-        NotificationManager authNotifManager = new NotificationManager();
+    private void applyAllFilters() {
+        // Step 1: apply keyword search against allEvents
+        ArrayList<Event> searchResults = new ArrayList<>();
+        for (Event event : allEvents) {
+            if (currentSearchQuery.isEmpty() ||
+                    (event.getName() != null && event.getName().toLowerCase().contains(currentSearchQuery.toLowerCase()))) {
+                searchResults.add(event);
+            }
+        }
 
-        String testRecipientId = "aqNQJhYDIfcfmj7PJKsY";
-        String testEmail = "ent1@gmail.com";
-        String testEventId = "3KwaMPf8RTLFs4cspVib";
-        String message = "Congratulations! You have been selected for the 'Annual Tech Gala'. Please accept or decline within 24 hours.";
+        // Step 2: determine if any filter is active
+        String filterAvail = (currentFilterAvail == null) ? "availability" : currentFilterAvail.toLowerCase();
+        String filterInterest = (currentFilterInterest == null) ? "interests" : currentFilterInterest.toLowerCase();
 
-        authNotifManager.sendNotification(
-                testRecipientId,
-                testEmail,
-                message,
-                "LOTTERY_WIN",
-                testEventId
-        );
+        boolean filterByAvail = filterAvail.equals("open") || filterAvail.equals("full");
+        boolean filterByInterest = !filterInterest.equals("interests") && !filterInterest.equals("all");
 
-        Toast.makeText(this, "Test Notification Sent!", Toast.LENGTH_SHORT).show();
+        // Step 3: apply interest filter on top of search results
+        ArrayList<Event> interestResults = new ArrayList<>();
+        for (Event event : searchResults) {
+            if (!filterByInterest) {
+                interestResults.add(event);
+            } else {
+                String name = (event.getName() != null) ? event.getName().toLowerCase() : "";
+                String category = (event.getCategory() != null) ? event.getCategory().toLowerCase() : "";
+                if (category.contains(filterInterest) || name.contains(filterInterest)) {
+                    interestResults.add(event);
+                }
+            }
+        }
+
+        // Step 4: if no availability filter, we're done
+        if (!filterByAvail) {
+            filteredEvents.clear();
+            filteredEvents.addAll(interestResults);
+            adapter.notifyDataSetChanged();
+            return;
+        }
+
+        // Step 5: async availability check on top of interest results
+        boolean wantOpen = filterAvail.equals("open");
+        ArrayList<Event> finalResults = new ArrayList<>();
+        int[] remaining = {interestResults.size()};
+
+        if (remaining[0] == 0) {
+            filteredEvents.clear();
+            adapter.notifyDataSetChanged();
+            return;
+        }
+
+        for (Event event : interestResults) {
+            int limit = event.getListLimit();
+
+            if (limit <= 0 || limit == Integer.MAX_VALUE) {
+                if (wantOpen) finalResults.add(event);
+                remaining[0]--;
+                if (remaining[0] == 0) finishFilter(finalResults);
+                continue;
+            }
+
+            db.collection("events")
+                    .document(event.getEventId())
+                    .collection("participants")
+                    .whereEqualTo("status", "waitlist")
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        int count = snapshot.size();
+                        boolean isFull = count >= limit;
+                        if ((wantOpen && !isFull) || (!wantOpen && isFull)) {
+                            finalResults.add(event);
+                        }
+                        remaining[0]--;
+                        if (remaining[0] == 0) finishFilter(finalResults);
+                    })
+                    .addOnFailureListener(e -> {
+                        remaining[0]--;
+                        if (remaining[0] == 0) finishFilter(finalResults);
+                    });
+        }
+    }
+
+    private void finishFilter(ArrayList<Event> result) {
+        filteredEvents.clear();
+        filteredEvents.addAll(result);
+        adapter.notifyDataSetChanged();
+        if (filteredEvents.isEmpty()) {
+            Toast.makeText(this, "No events match those filters", Toast.LENGTH_SHORT).show();
+        }
     }
 }
