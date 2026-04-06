@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import com.example.eventlotterysystemapp.R;
 import android.widget.Toast;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 // AdminDashboardActivity is the home screen for Admin users.
 // It presents a menu of admin actions, each represented as a clickable CardView.
@@ -16,6 +17,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         // Bind each card to its view in activity_admin_dashboard.xml
         CardView cardManageEvents     = findViewById(R.id.cardManageEvents);
