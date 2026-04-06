@@ -75,4 +75,5 @@ public class User {
     public void setNotificationsOptedOut(boolean notificationsOptedOut) {
         this.notificationsOptedOut = notificationsOptedOut;
     }
+    public User() {}
 }

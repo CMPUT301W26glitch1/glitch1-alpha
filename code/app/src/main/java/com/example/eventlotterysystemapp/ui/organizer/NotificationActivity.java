@@ -122,7 +122,11 @@ public class NotificationActivity extends AppCompatActivity {
                         String email = doc.getId();
                         String userId = doc.getString("userId"); // Ensure your participants doc has this field!
 
+                        if (userId == null) userId = email;
+
+
                         // Check if this user opted out of notifications
+                        String finalUserId = userId;
                         db.collection("users")
                                 .whereEqualTo("email", email)
                                 .get()
@@ -137,7 +141,7 @@ public class NotificationActivity extends AppCompatActivity {
                                     // User has NOT opted out, so send the notification
                                     Map<String, Object> notification = new HashMap<>();
                                     notification.put("recipientEmail", email);
-                                    notification.put("recipientId", userId); // Added: Essential for Entrant query
+                                    notification.put("recipientId", finalUserId); // Added: Essential for Entrant query
                                     notification.put("eventId", eventId);
                                     notification.put("eventName", eventName);
                                     notification.put("message", message);
