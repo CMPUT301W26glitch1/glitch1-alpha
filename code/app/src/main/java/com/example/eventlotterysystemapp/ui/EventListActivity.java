@@ -98,6 +98,7 @@ public class EventListActivity extends AppCompatActivity {
             PopupMenu popup = new PopupMenu(this, v);
             popup.getMenu().add("Refresh List");
             popup.getMenu().add("Lottery Info");
+            popup.getMenu().add("History");
             popup.getMenu().add("Settings");
             popup.getMenu().add("Logout");
 
@@ -108,6 +109,12 @@ public class EventListActivity extends AppCompatActivity {
                 } else if (item.getTitle().equals("Lottery Info")) {
                     startActivity(new Intent(EventListActivity.this, LotteryInfoActivity.class));
                     return true;
+                } else if (item.getTitle().equals("History")) {
+                    Intent intent = new Intent(EventListActivity.this, EventHistoryActivity.class);
+                    intent.putExtra("USER_EMAIL", loggedInUserEmail);
+                    startActivity(intent);
+                    return true;
+
                 } else if (item.getTitle().equals("Settings")) {
                     settingsLauncher.launch(new Intent(EventListActivity.this, SettingsActivity.class));
                     return true;

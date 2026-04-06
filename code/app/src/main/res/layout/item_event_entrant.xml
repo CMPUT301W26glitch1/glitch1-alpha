@@ -8,11 +8,13 @@
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="12dp">
+
         <ImageView
             android:id="@+id/eventPoster"
             android:layout_width="100dp"
@@ -20,10 +22,12 @@
             android:background="#D3D3D3"
             android:scaleType="centerInside"
             android:src="@android:drawable/ic_menu_gallery" />
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_marginStart="16dp">
+
             <ImageButton
                 android:id="@+id/btnThreeDotsMenu"
                 android:layout_width="48dp"
@@ -32,10 +36,8 @@
                 android:layout_alignParentTop="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_more_vert_black"
-                android:elevation="15dp"
-                android:padding="12dp"
-                android:clickable="true"
-                android:focusable="true"/>
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/tvJoinedBadge"
                 android:layout_width="wrap_content"
@@ -47,6 +49,7 @@
                 android:textColor="#FFFFFF"
                 android:textSize="10sp"
                 android:visibility="gone" />
+
             <TextView
                 android:id="@+id/eventName"
                 android:layout_width="wrap_content"
@@ -55,6 +58,7 @@
                 android:text="Event"
                 android:textSize="20sp"
                 android:textStyle="bold" />
+
             <TextView
                 android:id="@+id/eventDate"
                 android:layout_width="wrap_content"
@@ -62,6 +66,7 @@
                 android:layout_below="@id/eventName"
                 android:text="📅 Date"
                 android:textSize="14sp" />
+
             <TextView
                 android:id="@+id/eventCapacity"
                 android:layout_width="wrap_content"
@@ -71,6 +76,7 @@
                 android:layout_toEndOf="@id/eventDate"
                 android:text="👥 xx/xx"
                 android:textSize="14sp" />
+
             <Button
                 android:id="@+id/btnJoin"
                 android:layout_width="wrap_content"
@@ -84,7 +90,5 @@
                 android:textSize="12sp" />
 
         </RelativeLayout>
-
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>
