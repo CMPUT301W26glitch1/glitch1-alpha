@@ -28,10 +28,15 @@ import java.util.List;
  * The main menu for the organizer user
  */
 public class OrganizerMainActivity extends AppCompatActivity {
+
     private RecyclerView recyclerView;
     private EventAdapter adapter;
     private List<Event> eventList;
+
     private String loggedInUserEmail;
+    private String loggedInUserId;
+    private String loggedInUserName;
+
     private ActivityResultLauncher<Intent> settingsLauncher;
 
     @Override
@@ -42,7 +47,11 @@ public class OrganizerMainActivity extends AppCompatActivity {
 
         settingsLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> { if (result.getResultCode() == RESULT_OK) recreate(); }
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        recreate();
+                    }
+                }
         );
 
         boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
@@ -55,7 +64,6 @@ public class OrganizerMainActivity extends AppCompatActivity {
         adapter = new EventAdapter(this, eventList);
         recyclerView.setAdapter(adapter);
 
-        // Three-dot dropdown menu
         ImageView ivOptions = findViewById(R.id.ivOrganizerOptions);
         ivOptions.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, v);
@@ -78,6 +86,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                 }
                 return false;
             });
+
             popup.show();
         });
 
@@ -100,10 +109,13 @@ public class OrganizerMainActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(userQuery -> {
                     if (!userQuery.isEmpty()) {
-                        String userDocRefId = userQuery.getDocuments().get(0).getId();
+                        loggedInUserId = userQuery.getDocuments().get(0).getId();
+                        loggedInUserName = userQuery.getDocuments().get(0).getString("name");
+
+                        adapter.setCurrentUserInfo(loggedInUserId, loggedInUserName);
 
                         db.collection("events")
-                                .whereEqualTo("organizerId", userDocRefId)
+                                .whereEqualTo("organizerId", loggedInUserId)
                                 .addSnapshotListener((value, error) -> {
                                     if (error != null) {
                                         Toast.makeText(this, "Load failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -121,7 +133,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                                     adapter.notifyDataSetChanged();
                                 });
                     } else {
-                        Toast.makeText(this, "User record not found for " + loggedInUserEmail, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "User not found: " + loggedInUserEmail, Toast.LENGTH_SHORT).show();
                     }
                 });
     }
