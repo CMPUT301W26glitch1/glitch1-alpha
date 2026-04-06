@@ -99,7 +99,12 @@ public class NotificationActivity extends AppCompatActivity {
             return;
         }
 
-        String statusToMatch = selectedGroup.toLowerCase();
+        String statusToMatch;
+        if (selectedGroup.equals("Waiting")) {
+            statusToMatch = "waitlist";
+        } else {
+            statusToMatch = selectedGroup.toLowerCase();
+        }
 
         db.collection("events")
                 .document(eventId)

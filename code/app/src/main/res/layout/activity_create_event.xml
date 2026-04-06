@@ -72,7 +72,14 @@
             android:id="@+id/listLimit"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Waiting List Limit"
+            android:hint="Maximum Waitlist Size"
+            android:inputType="number"/>
+
+        <EditText
+            android:id="@+id/maxParticipants"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Maximum Participants (Capacity)"
             android:inputType="number"/>
 
         <TextView
