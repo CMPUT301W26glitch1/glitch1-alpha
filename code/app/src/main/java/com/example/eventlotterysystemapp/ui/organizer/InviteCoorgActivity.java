@@ -103,10 +103,35 @@ public class InviteCoorgActivity extends AppCompatActivity {
 
 
     private void sendCoorgInvite(String email, String userId) {
-        NotificationManager manager = new NotificationManager();
-        String message = "You have been invited to be a Co-Organizer for this event.";
+        db.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener(userSnapshot -> {
+                    if (!userSnapshot.isEmpty()) {
+                        Boolean optedOut = userSnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
+                        if (optedOut != null && optedOut) {
+                            Toast.makeText(this, "User has opted out of notifications", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
 
-        manager.sendNotification(userId, email, message, "COORG_INVITE", eventId);
-        Toast.makeText(this, "Invitation sent", Toast.LENGTH_SHORT).show();
+                    Map<String, Object> notification = new HashMap<>();
+                    notification.put("recipientEmail", email);
+                    notification.put("recipientId", userId);
+                    notification.put("eventId", eventId);
+                    notification.put("message", "You have been invited to be a Co-Organizer for this event.");
+                    notification.put("type", "COORG_INVITE");
+                    notification.put("status", "pending");
+                    notification.put("timestamp", Timestamp.now());
+
+                    db.collection("notifications")
+                            .add(notification)
+                            .addOnSuccessListener(documentReference -> {
+                                documentReference.update("id", documentReference.getId());
+                                Toast.makeText(this, "Invitation sent", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+                });
     }
 }
