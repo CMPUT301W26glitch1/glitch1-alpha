@@ -83,6 +83,11 @@ public class EventListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        fabCamera.setOnClickListener(v -> {
+            Intent intent = new Intent(EventListActivity.this, QRScannerActivity.class);
+            startActivity(intent);
+        });
+
         allEvents = new ArrayList<>();
         filteredEvents = new ArrayList<>();
 
