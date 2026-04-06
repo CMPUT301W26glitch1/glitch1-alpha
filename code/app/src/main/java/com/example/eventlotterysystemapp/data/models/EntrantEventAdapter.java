@@ -25,12 +25,24 @@ import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.List;
 
+/**
+ * RecyclerView Adapter for displaying events to Entrant users.
+ * Handles event information display, joining/leaving waitlists,
+ * and navigation to comment screens.
+ */
 public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapter.ViewHolder> {
     private Context context;
     private List<Event> events;
     private FirebaseFirestore db;
     private String email;
 
+    /**
+     * Constructor for EntrantEventAdapter.
+     *
+     * @param context Context of the activity using this adapter
+     * @param events List of Event objects to display
+     * @param email Entrant's email (used for identifying participation)
+     */
     public EntrantEventAdapter(Context context, List<Event> events, String email) {
         this.context = context;
         this.events = events;
