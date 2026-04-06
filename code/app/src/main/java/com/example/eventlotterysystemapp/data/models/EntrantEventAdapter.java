@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.ui.EntrantCommentActivity;
+import com.example.eventlotterysystemapp.ui.EntrantEventDetailsActivity;
 import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -49,22 +50,36 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         Event event = events.get(position);
         if (event == null) return;
 
-        // Core fix: Cancel existing listeners before binding new ones
+        // Core fix: Cancel existing listeners before binding new ones to prevent data bleeding
         holder.cancelListeners();
 
         String eventId = event.getEventId();
         holder.eventName.setText(event.getName());
 
         // --- SESSION SAFETY ---
-        // If email is missing (e.g. browsing as guest/admin), hide interaction buttons
+        // If email is missing, hide all interactive elements
         if (email.isEmpty()) {
             holder.btnJoin.setVisibility(View.GONE);
             holder.tvJoinedBadge.setVisibility(View.GONE);
             holder.btnComments.setVisibility(View.GONE);
+            holder.btnDetails.setVisibility(View.GONE);
         } else {
             holder.btnJoin.setVisibility(View.VISIBLE);
             holder.btnComments.setVisibility(View.VISIBLE);
+            holder.btnDetails.setVisibility(View.VISIBLE);
         }
+
+        // --- DETAILS LOGIC (The 'i' symbol) ---
+        holder.btnDetails.setOnClickListener(v -> {
+            if (eventId != null) {
+                Intent intent = new Intent(context, EntrantEventDetailsActivity.class);
+                intent.putExtra("EVENT_ID", eventId);
+                intent.putExtra("USER_EMAIL", email);
+                context.startActivity(intent);
+            } else {
+                Toast.makeText(context, "Event ID not found", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // --- COMMENTS LOGIC ---
         View.OnClickListener openComments = v -> {
@@ -185,7 +200,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         TextView eventName, eventDate, eventCapacity, tvJoinedBadge;
         ImageView eventPoster;
         Button btnJoin;
-        ImageButton btnThreedotsMenu, btnComments;
+        ImageButton btnThreedotsMenu, btnComments, btnDetails;
 
         ListenerRegistration capacityListenerReg;
         ListenerRegistration statusListenerReg;
@@ -199,6 +214,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             btnJoin = itemView.findViewById(R.id.btnJoin);
             tvJoinedBadge = itemView.findViewById(R.id.tvJoinedBadge);
             btnComments = itemView.findViewById(R.id.btnComments);
+            btnDetails = itemView.findViewById(R.id.btnDetails);
 
             View menuView = itemView.findViewById(R.id.btnThreeDotsMenu);
             if (menuView instanceof ImageButton) {

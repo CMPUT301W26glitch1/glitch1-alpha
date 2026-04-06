@@ -127,6 +127,10 @@
 
         <activity android:name=".ui.QRScannerActivity" android:exported="false" />
 
+        <activity
+            android:name=".ui.EntrantEventDetailsActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:exported="false" />
 
     </application>
 
