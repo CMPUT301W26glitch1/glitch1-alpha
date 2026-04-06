@@ -54,6 +54,16 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         String eventId = event.getEventId();
 
         holder.eventName.setText(event.getName());
+        holder.eventName.setOnClickListener(v -> {
+            if (eventId != null) {
+                android.content.Intent intent = new android.content.Intent(context, com.example.eventlotterysystemapp.ui.EntrantCommentActivity.class);
+                intent.putExtra("EVENT_ID", eventId);
+                intent.putExtra("USER_EMAIL", email);
+                context.startActivity(intent);
+            } else {
+                Toast.makeText(context, "Event ID not found", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         if (event.getDateTimeAsDate() != null) {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault());
@@ -119,6 +129,17 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 String status = snapshot.getString("status");
                 currentStatus[0] = (status == null || status.isEmpty()) ? "none" : status;
 
+                holder.tvJoinedBadge.setVisibility(View.VISIBLE);
+                holder.tvJoinedBadge.setText(currentStatus[0].toUpperCase());
+
+                if ("selected".equalsIgnoreCase(currentStatus[0])) {
+                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.GREEN);
+                } else if ("waitlist".equalsIgnoreCase(currentStatus[0])) {
+                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.parseColor("#1A237E"));
+                } else if ("cancelled".equalsIgnoreCase(currentStatus[0])) {
+                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.RED);
+                }
+
                 if ("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) {
                     holder.btnJoin.setText("Join");
                 } else {
@@ -178,9 +199,10 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
     public int getItemCount() { return events != null ? events.size() : 0; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView eventName, eventDate, eventCapacity;
+        TextView eventName, eventDate, eventCapacity, tvJoinedBadge;
         ImageView eventPoster;
         Button btnJoin;
+        android.widget.ImageButton btnThreedotsMenu;
 
         // Store listener registrations so they can be cancelled on rebind/recycle
         ListenerRegistration capacityListenerReg;
@@ -193,6 +215,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             eventCapacity = itemView.findViewById(R.id.eventCapacity);
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
+            tvJoinedBadge = itemView.findViewById(R.id.tvJoinedBadge);
+            btnThreedotsMenu = itemView.findViewById(R.id.btnThreeDotsMenu);
         }
 
         public void cancelListeners() {
