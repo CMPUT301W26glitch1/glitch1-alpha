@@ -20,6 +20,8 @@ import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
 import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+import com.example.eventlotterysystemapp.data.models.Event;
 
 import java.util.List;
 

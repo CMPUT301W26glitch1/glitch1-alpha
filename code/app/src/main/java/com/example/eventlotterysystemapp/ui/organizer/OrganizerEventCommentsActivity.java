@@ -1,6 +1,7 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,7 +16,9 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Comment;
 import com.example.eventlotterysystemapp.data.models.CommentAdapter;
 import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+import com.google.firebase.Timestamp; // Added import
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -94,7 +97,8 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
         String userId = (currentUserId != null && !currentUserId.isEmpty()) ? currentUserId : "unknown_user";
         String userName = (currentUserName != null && !currentUserName.isEmpty()) ? currentUserName : "Organizer";
 
-        long timestamp = System.currentTimeMillis();
+        // FIXED: Use Firebase Timestamp instead of long System.currentTimeMillis()
+        Timestamp timestamp = Timestamp.now();
 
         Comment comment = new Comment(commentId, text, userId, userName, timestamp);
 
@@ -118,14 +122,21 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
                 .collection("events")
                 .document(eventId)
                 .collection("comments")
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Optional: Sort by newest first
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     commentList.clear();
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Comment comment = doc.toObject(Comment.class);
-                        comment.setCommentId(doc.getId());
-                        commentList.add(comment);
+                        try {
+                            // FIXED: This will now properly use the updated Comment model with Timestamp
+                            Comment comment = doc.toObject(Comment.class);
+                            comment.setCommentId(doc.getId());
+                            commentList.add(comment);
+                        } catch (Exception e) {
+                            // Catching deserialization errors prevents the app from crashing on bad data
+                            Log.e("Firestore", "Error deserializing comment: " + e.getMessage());
+                        }
                     }
 
                     commentAdapter.notifyDataSetChanged();

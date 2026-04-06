@@ -44,13 +44,21 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         holder.tvUserName.setText(comment.getUserName() != null ? comment.getUserName() : "Unknown");
         holder.tvCommentText.setText(comment.getText() != null ? comment.getText() : "");
 
+        if (comment.getTimestamp() != null) {
+            java.util.Date date = comment.getTimestamp().toDate();
+            String formattedDate = android.text.format.DateFormat.format("MMM dd, yyyy HH:mm", date).toString();
+        }
+
         holder.btnDelete.setOnClickListener(v -> {
-            new AlertDialog.Builder(context)
-                    .setTitle("Delete Comment")
-                    .setMessage("Are you sure you want to delete this comment?")
-                    .setPositiveButton("Yes", (dialog, which) -> deleteComment(comment, position))
-                    .setNegativeButton("No", null)
-                    .show();
+            int currentPos = holder.getAdapterPosition();
+            if (currentPos != RecyclerView.NO_POSITION) {
+                new AlertDialog.Builder(context)
+                        .setTitle("Delete Comment")
+                        .setMessage("Are you sure you want to delete this comment?")
+                        .setPositiveButton("Yes", (dialog, which) -> deleteComment(comment, currentPos))
+                        .setNegativeButton("No", null)
+                        .show();
+            }
         });
 
         holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));

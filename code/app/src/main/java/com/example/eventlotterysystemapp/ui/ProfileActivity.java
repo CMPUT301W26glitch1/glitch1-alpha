@@ -2,6 +2,7 @@ package com.example.eventlotterysystemapp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +15,7 @@ import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
@@ -67,27 +69,51 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                user.setName(etName.getText().toString());
-                user.setEmail(etEmail.getText().toString());
-                user.setPhoneNumber(Integer.parseInt(etPhone.getText().toString()));
+                if (etEmail.getText().toString().isEmpty()) {
+                    etEmail.setError("Email required");
+                    return;
+                }
+
+                if (!android.util.Patterns.EMAIL_ADDRESS.matcher(etEmail.getText().toString()).matches()) {
+                    etEmail.setError("Invalid email");
+                    return;
+                }
+
+                if (etName.getText().toString().isEmpty()) {
+                    etName.setError("Name required");
+                    return;
+                }
+
+                String originalEmail = UserSession.getUser().getEmail();
+                String newEmail = etEmail.getText().toString();
 
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
 
                 db.collection("users")
-                        .document(user.getName()) // using name as ID
-                        .set(user)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
-                                startActivity(intent);
+                        .whereEqualTo("email",originalEmail)
+                        .get()
+                        .addOnSuccessListener(querySnapshot -> {
+
+                            for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                                doc.getReference().delete();
                             }
+                            // update user object
+                            user.setName(etName.getText().toString());
+                            user.setEmail(newEmail);
+                            user.setPhoneNumber(etPhone.getText().toString());
+
+                            // now create new document
+                            db.collection("users")
+                                    .document(newEmail)
+                                    .set(user)
+                                    .addOnSuccessListener(aVoid1 -> {
+                                        Toast.makeText(ProfileActivity.this, "Profile updated", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(ProfileActivity.this, EventListActivity.class));
+                                    });
+
                         })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(Exception e) {
-                                e.printStackTrace();
-                            }
+                        .addOnFailureListener(e -> {
+                            Log.e("Firestore", "Delete failed", e);
                         });
 
             }

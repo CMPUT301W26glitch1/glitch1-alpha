@@ -1,11 +1,13 @@
 package com.example.eventlotterysystemapp.data.models;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,11 +16,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.EntrantCommentActivity;
+import com.example.eventlotterysystemapp.ui.EntrantEventDetailsActivity;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-
-import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.List;
 
@@ -47,22 +50,29 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         Event event = events.get(position);
         if (event == null) return;
 
-        // Cancel any existing listeners from a previously bound event before attaching new ones.
-        // This is the core fix for the "joining one event joins others" bug.
+        // Core fix: Cancel existing listeners before binding new ones to prevent data bleeding
         holder.cancelListeners();
 
         String eventId = event.getEventId();
-
         holder.eventName.setText(event.getName());
-        // Inside onBindViewHolder in EntrantEventAdapter.java
-        if (email == null || email.isEmpty()) {
+
+        // --- SESSION SAFETY ---
+        // If email is missing, hide all interactive elements
+        if (email.isEmpty()) {
             holder.btnJoin.setVisibility(View.GONE);
             holder.tvJoinedBadge.setVisibility(View.GONE);
-            return; // Don't run the Firestore logic if email is missing
+            holder.btnComments.setVisibility(View.GONE);
+            holder.btnDetails.setVisibility(View.GONE);
+        } else {
+            holder.btnJoin.setVisibility(View.VISIBLE);
+            holder.btnComments.setVisibility(View.VISIBLE);
+            holder.btnDetails.setVisibility(View.VISIBLE);
         }
-        holder.eventName.setOnClickListener(v -> {
+
+        // --- DETAILS LOGIC (The 'i' symbol) ---
+        holder.btnDetails.setOnClickListener(v -> {
             if (eventId != null) {
-                android.content.Intent intent = new android.content.Intent(context, com.example.eventlotterysystemapp.ui.EntrantCommentActivity.class);
+                Intent intent = new Intent(context, EntrantEventDetailsActivity.class);
                 intent.putExtra("EVENT_ID", eventId);
                 intent.putExtra("USER_EMAIL", email);
                 context.startActivity(intent);
@@ -71,6 +81,21 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             }
         });
 
+        // --- COMMENTS LOGIC ---
+        View.OnClickListener openComments = v -> {
+            if (eventId != null) {
+                Intent intent = new Intent(context, EntrantCommentActivity.class);
+                intent.putExtra("EVENT_ID", eventId);
+                intent.putExtra("USER_EMAIL", email);
+                context.startActivity(intent);
+            } else {
+                Toast.makeText(context, "Event ID not found", Toast.LENGTH_SHORT).show();
+            }
+        };
+        holder.eventName.setOnClickListener(openComments);
+        holder.btnComments.setOnClickListener(openComments);
+
+        // --- DATE FORMATTING ---
         if (event.getDateTimeAsDate() != null) {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault());
             holder.eventDate.setText("📅 " + sdf.format(event.getDateTimeAsDate()));
@@ -78,8 +103,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             holder.eventDate.setText("📅 TBD");
         }
 
-        // Listener 1: waitlist count and full/open status
-        ListenerRegistration capacityReg = db.collection("events")
+        // --- LISTENER 1: CAPACITY & WAITLIST ---
+        holder.capacityListenerReg = db.collection("events")
                 .document(eventId)
                 .collection("participants")
                 .whereEqualTo("status", "waitlist")
@@ -89,13 +114,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                     int currentWaitlistSize = snapshot.size();
                     int limit = event.getListLimit();
 
-                    String limitStr;
-                    if (limit == Integer.MAX_VALUE || limit <= 0) {
-                        limitStr = "\u221E";
-                    } else {
-                        limitStr = String.valueOf(limit);
-                    }
-
+                    String limitStr = (limit == Integer.MAX_VALUE || limit <= 0) ? "\u221E" : String.valueOf(limit);
                     holder.eventCapacity.setText("👥 " + currentWaitlistSize + "/" + limitStr);
 
                     boolean isFull = (limit > 0 && limit != Integer.MAX_VALUE && currentWaitlistSize >= limit);
@@ -106,95 +125,68 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                         holder.btnJoin.setEnabled(true);
                     }
                 });
-        holder.capacityListenerReg = capacityReg;
 
+        // --- POSTER IMAGE ---
         Glide.with(context)
                 .load(event.getPosterUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.eventPoster);
 
-        if (email == null || email.isEmpty()) {
-            holder.btnJoin.setEnabled(false);
-            return;
-        }
+        if (email.isEmpty()) return;
 
+        // --- LISTENER 2: USER JOIN STATUS ---
         final String[] currentStatus = {"none"};
         DocumentReference userRef = db.collection("events")
                 .document(eventId)
                 .collection("participants")
                 .document(email);
 
-        // Listener 2: this user's join status for this specific event
-        ListenerRegistration statusReg = userRef.addSnapshotListener((snapshot, e) -> {
-            if (e != null) {
-                android.util.Log.e("FIRESTORE_STATUS", "Listen failed.", e);
-                return;
-            }
+        holder.statusListenerReg = userRef.addSnapshotListener((snapshot, e) -> {
+            if (e != null || snapshot == null) return;
 
-            if (snapshot != null && snapshot.exists()) {
+            if (snapshot.exists()) {
                 String status = snapshot.getString("status");
                 currentStatus[0] = (status == null || status.isEmpty()) ? "none" : status;
 
                 holder.tvJoinedBadge.setVisibility(View.VISIBLE);
                 holder.tvJoinedBadge.setText(currentStatus[0].toUpperCase());
 
-                if ("selected".equalsIgnoreCase(currentStatus[0])) {
-                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.GREEN);
-                } else if ("waitlist".equalsIgnoreCase(currentStatus[0])) {
-                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.parseColor("#1A237E"));
-                } else if ("cancelled".equalsIgnoreCase(currentStatus[0])) {
-                    holder.tvJoinedBadge.setBackgroundColor(android.graphics.Color.RED);
-                }
+                // Set color based on status
+                int color = android.graphics.Color.parseColor("#1A237E");
+                if ("selected".equalsIgnoreCase(currentStatus[0])) color = android.graphics.Color.GREEN;
+                else if ("cancelled".equalsIgnoreCase(currentStatus[0])) color = android.graphics.Color.RED;
 
-                if ("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) {
-                    holder.btnJoin.setText("Join");
-                } else {
-                    holder.btnJoin.setText("Leave");
-                }
+                holder.tvJoinedBadge.setBackgroundColor(color);
+                holder.btnJoin.setText(("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) ? "Join" : "Leave");
             } else {
                 currentStatus[0] = "none";
                 holder.btnJoin.setText("Join");
+                holder.tvJoinedBadge.setVisibility(View.GONE);
             }
         });
-        holder.statusListenerReg = statusReg;
 
+        // --- JOIN/LEAVE ACTION ---
         holder.btnJoin.setOnClickListener(v -> {
             String buttonText = holder.btnJoin.getText().toString();
-            String status = currentStatus[0];
-
             if ("Join".equalsIgnoreCase(buttonText)) {
-                if (status == null || status.isEmpty() || "none".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
-                    Participant participant = new Participant(email, "waitlist");
-                    userRef.set(participant)
-                            .addOnSuccessListener(aVoid ->
-                                    Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(err -> {
-                                android.util.Log.e("FIRESTORE_ERROR", err.getMessage());
-                                Toast.makeText(context, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
-                } else {
-                    Toast.makeText(context, "Cannot join. Current status: " + status, Toast.LENGTH_SHORT).show();
-                }
+                Participant p = new Participant(email, "waitlist");
+                userRef.set(p).addOnSuccessListener(aVoid ->
+                        Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show());
             } else {
-                userRef.update("status", "cancelled")
-                        .addOnSuccessListener(aVoid ->
-                                Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show())
-                        .addOnFailureListener(err ->
-                                userRef.set(new Participant(email, "cancelled")));
+                userRef.update("status", "cancelled").addOnSuccessListener(aVoid ->
+                        Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show());
             }
         });
 
+        // --- ACCESSIBILITY ---
         if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
             holder.eventName.setTextSize(26);
             holder.eventDate.setTextSize(16);
             holder.eventCapacity.setTextSize(16);
-
             holder.btnJoin.setTextSize(15);
-            holder.btnJoin.setMinHeight(65);
         }
     }
 
-    // Called by RecyclerView when a ViewHolder goes off screen - clean up listeners
     @Override
     public void onViewRecycled(@NonNull ViewHolder holder) {
         super.onViewRecycled(holder);
@@ -208,9 +200,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         TextView eventName, eventDate, eventCapacity, tvJoinedBadge;
         ImageView eventPoster;
         Button btnJoin;
-        android.widget.ImageButton btnThreedotsMenu;
+        ImageButton btnThreedotsMenu, btnComments, btnDetails;
 
-        // Store listener registrations so they can be cancelled on rebind/recycle
         ListenerRegistration capacityListenerReg;
         ListenerRegistration statusListenerReg;
 
@@ -222,21 +213,20 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
             tvJoinedBadge = itemView.findViewById(R.id.tvJoinedBadge);
+            btnComments = itemView.findViewById(R.id.btnComments);
+            btnDetails = itemView.findViewById(R.id.btnDetails);
+
             View menuView = itemView.findViewById(R.id.btnThreeDotsMenu);
-            if (menuView instanceof android.widget.ImageButton) {
-                btnThreedotsMenu = (android.widget.ImageButton) menuView;
+            if (menuView instanceof ImageButton) {
+                btnThreedotsMenu = (ImageButton) menuView;
             }
         }
 
         public void cancelListeners() {
-            if (capacityListenerReg != null) {
-                capacityListenerReg.remove();
-                capacityListenerReg = null;
-            }
-            if (statusListenerReg != null) {
-                statusListenerReg.remove();
-                statusListenerReg = null;
-            }
+            if (capacityListenerReg != null) capacityListenerReg.remove();
+            if (statusListenerReg != null) statusListenerReg.remove();
+            capacityListenerReg = null;
+            statusListenerReg = null;
         }
     }
 }
