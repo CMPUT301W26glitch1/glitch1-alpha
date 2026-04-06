@@ -54,6 +54,12 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         String eventId = event.getEventId();
 
         holder.eventName.setText(event.getName());
+        // Inside onBindViewHolder in EntrantEventAdapter.java
+        if (email == null || email.isEmpty()) {
+            holder.btnJoin.setVisibility(View.GONE);
+            holder.tvJoinedBadge.setVisibility(View.GONE);
+            return; // Don't run the Firestore logic if email is missing
+        }
         holder.eventName.setOnClickListener(v -> {
             if (eventId != null) {
                 android.content.Intent intent = new android.content.Intent(context, com.example.eventlotterysystemapp.ui.EntrantCommentActivity.class);
@@ -216,7 +222,10 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
             tvJoinedBadge = itemView.findViewById(R.id.tvJoinedBadge);
-            btnThreedotsMenu = itemView.findViewById(R.id.btnThreeDotsMenu);
+            View menuView = itemView.findViewById(R.id.btnThreeDotsMenu);
+            if (menuView instanceof android.widget.ImageButton) {
+                btnThreedotsMenu = (android.widget.ImageButton) menuView;
+            }
         }
 
         public void cancelListeners() {

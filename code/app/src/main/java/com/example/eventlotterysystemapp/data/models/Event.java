@@ -50,7 +50,18 @@ public class Event {
     {return privateEvent;}
     public void setPrivateEvent(boolean privateEvent) {this.privateEvent=privateEvent;}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Event event = (Event) o;
+        return eventId != null ? eventId.equals(event.eventId) : event.eventId == null;
+    }
 
+    @Override
+    public int hashCode() {
+        return eventId != null ? eventId.hashCode() : 0;
+    }
     // --- Standard Getters/Setters ---
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
