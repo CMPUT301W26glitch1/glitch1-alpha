@@ -9,7 +9,7 @@ public class User {
     private String email;
     private String role;
     private String lastDeviceId;
-    private Integer phoneNumber;
+    private String phoneNumber;
     private boolean notificationsOptedOut;
 
 
@@ -19,7 +19,7 @@ public class User {
         this.email = email;
         this.role = role;
         this.lastDeviceId = lastDeviceId;
-        this.phoneNumber = -1;
+        this.phoneNumber = "-1";
     }
 
     // -----getters and setters-----
@@ -57,7 +57,7 @@ public class User {
     }
 
     public String getPhoneNumber(){return phoneNumber.toString();}
-    public void setPhoneNumber(Integer phone) {
+    public void setPhoneNumber(String phone) {
         this.phoneNumber = phone;
     }
 
