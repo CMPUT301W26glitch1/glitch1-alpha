@@ -1,22 +1,26 @@
 package com.example.eventlotterysystemapp.data.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.ServerTimestamp;
 
 public class EntrantComment {
     private String userName;
     private String text;
-    @ServerTimestamp
     private Timestamp timestamp;
 
-    public EntrantComment() {} // Needed for Firebase
+    public EntrantComment() {}
 
-    public EntrantComment(String userName, String text) {
+    public EntrantComment(String userName, String text, Timestamp timestamp) {
         this.userName = userName;
         this.text = text;
+        this.timestamp = timestamp;
     }
 
     public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
     public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+
     public Timestamp getTimestamp() { return timestamp; }
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
 }

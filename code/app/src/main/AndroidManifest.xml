@@ -120,7 +120,6 @@
         <activity android:name=".ui.EventHistoryActivity"
             android:exported="false" />
         <activity android:name=".ui.EntrantCommentActivity" />
-        <activity android:name=".ui.EventPreviewActivity" />
 
     </application>
 

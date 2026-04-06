@@ -1,6 +1,7 @@
 package com.example.eventlotterysystemapp.ui;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.EntrantComment;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -32,7 +34,7 @@ public class EntrantCommentActivity extends AppCompatActivity {
 
         // --- 1. THE BACK BUTTON FIX ---
         ImageButton btnBack = findViewById(R.id.btnBackToEvents);
-        btnBack.setOnClickListener(v -> finish()); // This closes the screen
+        btnBack.setOnClickListener(v -> finish());
 
         // --- 2. SET UP THE LIST (VIEWING) ---
         RecyclerView rv = findViewById(R.id.rvComments);
@@ -45,11 +47,24 @@ public class EntrantCommentActivity extends AppCompatActivity {
         Button btnPost = findViewById(R.id.btnPostComment);
         btnPost.setOnClickListener(v -> {
             String text = etComment.getText().toString().trim();
-            if (!text.isEmpty() && eventId != null) {
-                EntrantComment newComment = new EntrantComment(userEmail, text);
+            if (text.isEmpty()) {
+                Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (eventId != null) {
+                Timestamp timestamp = Timestamp.now();
+
+                EntrantComment newComment = new EntrantComment(userEmail, text, timestamp);
+
                 db.collection("events").document(eventId)
                         .collection("comments").add(newComment)
-                        .addOnSuccessListener(doc -> etComment.setText(""));
+                        .addOnSuccessListener(doc -> {
+                            etComment.setText("");
+                            Toast.makeText(this, "Comment posted", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
 
@@ -59,10 +74,19 @@ public class EntrantCommentActivity extends AppCompatActivity {
                     .collection("comments")
                     .orderBy("timestamp", Query.Direction.ASCENDING)
                     .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            Log.e("Firestore", "Listen failed.", error);
+                            return;
+                        }
+
                         if (value != null) {
                             commentList.clear();
                             for (QueryDocumentSnapshot doc : value) {
-                                commentList.add(doc.toObject(EntrantComment.class));
+                                try {
+                                    commentList.add(doc.toObject(EntrantComment.class));
+                                } catch (Exception e) {
+                                    Log.e("Firestore", "Deserialization error: " + e.getMessage());
+                                }
                             }
                             adapter.notifyDataSetChanged();
                         }
@@ -70,7 +94,7 @@ public class EntrantCommentActivity extends AppCompatActivity {
         }
     }
 
-    // --- MINI ADAPTER (STAYS INSIDE THIS FILE) ---
+    // --- MINI ADAPTER ---
     private class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHolder> {
         private ArrayList<EntrantComment> list;
         public CommentAdapter(ArrayList<EntrantComment> list) { this.list = list; }
@@ -85,7 +109,7 @@ public class EntrantCommentActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(ViewHolder h, int pos) {
             EntrantComment c = list.get(pos);
-            h.t1.setText(c.getUserName());
+            h.t1.setText(c.getUserName() != null ? c.getUserName() : "Anonymous");
             h.t2.setText(c.getText());
         }
 
