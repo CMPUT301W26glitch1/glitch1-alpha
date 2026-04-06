@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.eventlotterysystemapp.data.models.User;
+import com.example.eventlotterysystemapp.data.models.UserSession;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -103,25 +105,44 @@ public class LoginActivity extends AppCompatActivity {
                     // Route the user to the correct dashboard based on their role
                     switch (role != null ? role : "") {
                         case "Admin":
-                            // Navigate to AdminDashboardActivity
+                            User adminUser = new User(
+                                    userDoc.getString("name"),
+                                    userDoc.getString("password"),
+                                    userDoc.getString("email"),
+                                    "Admin",
+                                    userDoc.getString("lastDeviceId")
+                            );
+                            UserSession.setUser(adminUser);
                             startActivity(new Intent(this, AdminDashboardActivity.class));
                             finish();
                             break;
+
                         case "Organizer":
+                            User organizerUser = new User(
+                                    userDoc.getString("name"),
+                                    userDoc.getString("password"),
+                                    userDoc.getString("email"),
+                                    "Organizer",
+                                    userDoc.getString("lastDeviceId")
+                            );
+                            UserSession.setUser(organizerUser);
                             Intent intent = new Intent(this, OrganizerMainActivity.class);
-                            // Pass the email as a string extra
                             intent.putExtra("USER_EMAIL", email);
                             startActivity(intent);
                             finish();
                             break;
-                        case "Entrant":
-                            // TODO: replace with EntrantDashboardActivity when built
-                            Toast.makeText(this, "Welcome, Entrant!", Toast.LENGTH_SHORT).show();
-                            Intent entrantIntent = new Intent(this, EventListActivity.class);
-                            entrantIntent.putExtra("USER_EMAIL", email);
-                            startActivity(entrantIntent);
-                            finish();
 
+                        case "Entrant":
+                            User entrantUser = new User(
+                                    userDoc.getString("name"),
+                                    userDoc.getString("password"),
+                                    userDoc.getString("email"),
+                                    "Entrant",
+                                    userDoc.getString("lastDeviceId")
+                            );
+                            UserSession.setUser(entrantUser);
+                            startActivity(new Intent(this, EventListActivity.class));
+                            finish();
                             break;
                         default:
                             // Role field is missing or unrecognized
