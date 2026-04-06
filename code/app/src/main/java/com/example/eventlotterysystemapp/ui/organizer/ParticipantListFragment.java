@@ -30,6 +30,7 @@ import java.util.List;
 /**
  * Fragment that lists participants.
  * Handles lottery drawing logic only when the 'waitlist' status is active.
+ * Handles replacement drawing when the 'cancelled' status is active (US 01.05.01 / 02.05.03).
  */
 public class ParticipantListFragment extends Fragment {
     private String eventId, status;
@@ -38,6 +39,7 @@ public class ParticipantListFragment extends Fragment {
     private ParticipantAdapter adapter;
     private List<Participant> participantList = new ArrayList<>();
     private Button lotteryBtn;
+    private Button drawReplacementBtn;
     private TextView tvCapacity;
 
     public static ParticipantListFragment newInstance(String eId, String stat) {
@@ -66,14 +68,12 @@ public class ParticipantListFragment extends Fragment {
 
         tvCapacity = view.findViewById(R.id.tvCapacity);
         lotteryBtn = view.findViewById(R.id.btnLottery);
+        drawReplacementBtn = view.findViewById(R.id.btnDrawReplacement);
         recyclerView = view.findViewById(R.id.participantRecyclerView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        boolean cancelBtn = false;
-        if (status.equals("selected")) {
-            cancelBtn = true;
-        }
+        boolean cancelBtn = "selected".equals(status);
         adapter = new ParticipantAdapter(participantList, cancelBtn, eventId);
         recyclerView.setAdapter(adapter);
 
@@ -84,16 +84,27 @@ public class ParticipantListFragment extends Fragment {
     private void setupTabLogic() {
         if ("waitlist".equals(status)) {
             lotteryBtn.setVisibility(View.VISIBLE);
+            drawReplacementBtn.setVisibility(View.GONE);
             tvCapacity.setVisibility(View.VISIBLE);
             fetchEventCapacity();
-            lotteryBtn.setOnClickListener(v -> runLottery(0));
+            lotteryBtn.setOnClickListener(v -> runLottery());
+
+        } else if ("cancelled".equals(status)) {
+            // Show Draw Replacement button on the cancelled tab
+            lotteryBtn.setVisibility(View.GONE);
+            drawReplacementBtn.setVisibility(View.VISIBLE);
+            tvCapacity.setVisibility(View.GONE);
+            drawReplacementBtn.setOnClickListener(v -> drawOneReplacement());
 
         } else if ("selected".equals(status) || "enrolled".equals(status)) {
             lotteryBtn.setVisibility(View.GONE);
+            drawReplacementBtn.setVisibility(View.GONE);
             tvCapacity.setVisibility(View.VISIBLE);
             fetchEventCapacity();
+
         } else {
             lotteryBtn.setVisibility(View.GONE);
+            drawReplacementBtn.setVisibility(View.GONE);
             tvCapacity.setVisibility(View.GONE);
         }
     }
@@ -165,11 +176,7 @@ public class ParticipantListFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(enrolledSnap -> {
                     if (!isAdded()) return;
-
-                    int enrolledCount = enrolledSnap.size();
-                    int selectedCount = participantList.size();
-                    int totalOccupancy = enrolledCount + selectedCount;
-
+                    int totalOccupancy = enrolledSnap.size() + participantList.size();
                     tvCapacity.setText("Occupancy: " + totalOccupancy + " / " + maxLimit);
                 });
     }
@@ -181,16 +188,72 @@ public class ParticipantListFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(selectedSnap -> {
                     if (!isAdded()) return;
-
-                    int selectedCount = selectedSnap.size();
-                    int enrolledCount = participantList.size();
-                    int totalOccupancy = selectedCount + enrolledCount;
-
+                    int totalOccupancy = selectedSnap.size() + participantList.size();
                     tvCapacity.setText("Occupancy: " + totalOccupancy + " / " + maxLimit);
                 });
     }
 
-    private void runLottery(int ignore) {
+    /**
+     * Draws one random replacement from the waitlist and promotes them to selected.
+     * Satisfies US 01.05.01 and US 02.05.03.
+     */
+    private void drawOneReplacement() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("events").document(eventId).get().addOnSuccessListener(eventDoc -> {
+            if (!eventDoc.exists() || !isAdded()) return;
+
+            String eventName = eventDoc.getString("name");
+
+            // Fetch everyone currently on the waitlist
+            db.collection("events").document(eventId).collection("participants")
+                    .whereEqualTo("status", "waitlist")
+                    .get()
+                    .addOnSuccessListener(waitlistSnap -> {
+                        if (!isAdded()) return;
+
+                        if (waitlistSnap.isEmpty()) {
+                            Toast.makeText(getContext(), "No one left on the waitlist!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Pick one random person from the waitlist
+                        List<QueryDocumentSnapshot> waitlistDocs = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : waitlistSnap) {
+                            waitlistDocs.add(doc);
+                        }
+                        Collections.shuffle(waitlistDocs);
+                        QueryDocumentSnapshot chosen = waitlistDocs.get(0);
+
+                        String chosenEmail = chosen.getId();
+
+                        // Promote them to selected
+                        db.collection("events").document(eventId)
+                                .collection("participants").document(chosenEmail)
+                                .update("status", "selected")
+                                .addOnSuccessListener(aVoid -> {
+                                    if (!isAdded()) return;
+
+                                    // Notify the replacement winner
+                                    NotificationManager nm = new NotificationManager();
+                                    nm.sendNotification(chosenEmail, chosenEmail,
+                                            "Great news! A spot opened up and you have been selected for " + eventName + "!",
+                                            "LOTTERY_WIN", eventId);
+
+                                    Toast.makeText(getContext(), "Replacement drawn: " + chosenEmail, Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(getContext(), "Failed to draw replacement", Toast.LENGTH_SHORT).show());
+                    })
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Failed to load waitlist", Toast.LENGTH_SHORT).show());
+        });
+    }
+
+    /**
+     * Runs the full lottery drawing from the waitlist.
+     */
+    private void runLottery() {
         if (participantList.isEmpty()) {
             Toast.makeText(getContext(), "Waitlist is empty!", Toast.LENGTH_SHORT).show();
             return;
@@ -208,7 +271,6 @@ public class ParticipantListFragment extends Fragment {
             db.collection("events").document(eventId).collection("participants")
                     .get()
                     .addOnSuccessListener(allParticipants -> {
-
                         int currentOccupancy = 0;
                         for (QueryDocumentSnapshot doc : allParticipants) {
                             String s = doc.getString("status");
