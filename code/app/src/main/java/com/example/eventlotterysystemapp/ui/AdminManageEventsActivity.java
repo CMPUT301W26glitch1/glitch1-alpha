@@ -93,7 +93,7 @@ public class AdminManageEventsActivity extends AppCompatActivity {
         @Override
         public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_event, parent, false);
+                    .inflate(R.layout.item_admin_event, parent, false);
             return new EventViewHolder(view);
         }
 
@@ -104,13 +104,18 @@ public class AdminManageEventsActivity extends AppCompatActivity {
             QueryDocumentSnapshot doc = eventList.get(position);
 
             String name     = doc.getString("name");
-            String date     = doc.getString("date");
             String location = doc.getString("location");
+
+            // dateTime is stored as a Firestore Timestamp, not a String
+            java.util.Date dateTime = doc.getDate("dateTime");
+            String dateStr = (dateTime != null)
+                    ? new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(dateTime)
+                    : null;
 
             holder.tvName.setText(name != null ? name : "Unnamed Event");
 
             // combine date and location into eventDesc
-            String dateLocation = (date != null ? date : "No date") + " | " + (location != null ? location : "No location");
+            String dateLocation = (dateStr != null ? dateStr : "No date") + " | " + (location != null ? location : "No location");
             holder.tvDateLocation.setText(dateLocation);
 
             String posterUrl = doc.getString("posterUrl");
@@ -129,7 +134,6 @@ public class AdminManageEventsActivity extends AppCompatActivity {
                 Intent intent = new Intent(AdminManageEventsActivity.this, AdminEventDetailActivity.class);
                 intent.putExtra("eventId", doc.getId());
                 intent.putExtra("eventName", name);
-                intent.putExtra("eventDate", date);
                 intent.putExtra("eventLocation", location);
                 intent.putExtra("eventDescription", doc.getString("description"));
                 intent.putExtra("eventCategory", doc.getString("category"));

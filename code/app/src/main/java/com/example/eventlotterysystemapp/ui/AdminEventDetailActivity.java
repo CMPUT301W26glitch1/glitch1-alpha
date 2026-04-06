@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
 
 // AdminEventDetailActivity displays the full details of a single event.
 // It fetches the event document directly from Firestore to get all fields
@@ -43,6 +44,11 @@ public class AdminEventDetailActivity extends AppCompatActivity {
 
         // get the event document ID passed from AdminManageEventsActivity
         eventId = getIntent().getStringExtra("eventId");
+        if (eventId == null || eventId.isEmpty()) {
+            Toast.makeText(this, "Event ID missing", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // fetch the full event document from Firestore to get all fields
         db.collection("events").document(eventId)
@@ -98,16 +104,43 @@ public class AdminEventDetailActivity extends AppCompatActivity {
             Glide.with(getApplicationContext()).load(posterUrl).into(ivPoster);        }
     }
 
-    // deletes the event document from Firestore using the eventId
-    // on success calls finish() which triggers onResume() in the list screen
+    // deletes the event and all related data (participants, notifications, poster)
     private void deleteEvent() {
-        db.collection("events").document(eventId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Event deleted", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        // 1. Delete the poster image from Firebase Storage (if it exists)
+        try {
+            FirebaseStorage.getInstance().getReference("event_posters/" + eventId + ".jpg").delete();
+        } catch (Exception ignored) {}
+        try {
+            FirebaseStorage.getInstance().getReference("posters/" + eventId).delete();
+        } catch (Exception ignored) {}
+
+        // 2. Delete all participants in the subcollection
+        db.collection("events").document(eventId).collection("participants")
+                .get()
+                .addOnSuccessListener(participantSnap -> {
+                    for (DocumentSnapshot doc : participantSnap.getDocuments()) {
+                        doc.getReference().delete();
+                    }
+
+                    // 3. Delete all notifications linked to this event
+                    db.collection("notifications")
+                            .whereEqualTo("eventId", eventId)
+                            .get()
+                            .addOnSuccessListener(notifSnap -> {
+                                for (DocumentSnapshot doc : notifSnap.getDocuments()) {
+                                    doc.getReference().delete();
+                                }
+
+                                // 4. Delete the event document itself
+                                db.collection("events").document(eventId)
+                                        .delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this, "Event and related data deleted", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            });
+                });
     }
 }
