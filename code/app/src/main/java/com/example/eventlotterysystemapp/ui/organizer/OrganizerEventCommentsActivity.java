@@ -1,6 +1,8 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -20,6 +22,8 @@ import java.util.List;
 public class OrganizerEventCommentsActivity extends AppCompatActivity {
 
     private RecyclerView rvComments;
+    private EditText etCommentInput;
+    private Button btnPostComment;
     private CommentAdapter commentAdapter;
     private List<Comment> commentList;
     private String eventId;
@@ -30,6 +34,9 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_organizer_event_comments);
 
         rvComments = findViewById(R.id.rvComments);
+        etCommentInput = findViewById(R.id.etCommentInput);
+        btnPostComment = findViewById(R.id.btnPostComment);
+
         rvComments.setLayoutManager(new LinearLayoutManager(this));
 
         commentList = new ArrayList<>();
@@ -44,7 +51,46 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
         commentAdapter = new CommentAdapter(this, commentList, eventId);
         rvComments.setAdapter(commentAdapter);
 
+        btnPostComment.setOnClickListener(v -> postComment());
+
         loadComments();
+    }
+
+    private void postComment() {
+        String text = etCommentInput.getText().toString().trim();
+
+        if (text.isEmpty()) {
+            Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        String commentId = db.collection("events")
+                .document(eventId)
+                .collection("comments")
+                .document()
+                .getId();
+
+        String userId = "organizer123";
+        String userName = "Organizer";
+        long timestamp = System.currentTimeMillis();
+
+        Comment comment = new Comment(commentId, text, userId, userName, timestamp);
+
+        db.collection("events")
+                .document(eventId)
+                .collection("comments")
+                .document(commentId)
+                .set(comment)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(this, "Comment posted", Toast.LENGTH_SHORT).show();
+                    etCommentInput.setText("");
+                    loadComments();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to post comment: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
     private void loadComments() {
