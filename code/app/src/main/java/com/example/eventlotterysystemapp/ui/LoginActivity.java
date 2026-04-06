@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerMainActivity;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -35,13 +36,22 @@ public class LoginActivity extends AppCompatActivity {
     // Firestore database instance used to query the users collection
     private FirebaseFirestore db;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         setContentView(R.layout.activity_login);
 
         // Firestore instance
         db = FirebaseFirestore.getInstance();
+        // ANDROID_ID used to track which device an Entrant/Organizer last logged in from.
+        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+
+        checkUser();
 
         // Bind UI elements to their corresponding views in activity_login.xml
         etEmail     = findViewById(R.id.etEmail);
@@ -64,14 +74,16 @@ public class LoginActivity extends AppCompatActivity {
         String email    = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
+        // ANDROID_ID used to track which device an Entrant/Organizer last logged in from.
+        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+
         // Basic validation: reject empty fields before hitting Firestore
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // ANDROID_ID used to track which device an Entrant/Organizer last logged in from.
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
         // Query Firestore: find a user document where both email AND password match.
         // whereEqualTo chains act as AND conditions on the query.
@@ -177,4 +189,52 @@ public class LoginActivity extends AppCompatActivity {
             throw new RuntimeException("SHA-256 not available", e);
         }
     }
+
+
+    private void checkUser() {
+
+        // ANDROID_ID used to track which device an Entrant/Organizer last logged in from.
+        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        db.collection("users")
+                .whereEqualTo("lastDeviceId", deviceId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Take the first matching user
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+
+                        loadUserFields(doc);
+
+                        startActivity(new Intent(this, EventListActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Please sign up", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+    private void loadUserFields(DocumentSnapshot document) {
+
+        String name = document.getString("name");
+        String password = document.getString("password");
+        String role = document.getString("role");
+        String deviceId = document.getString("lastDeviceId");
+        String email = document.getString("email");
+        String phone = document.getString("phoneNumber");
+
+        User user = new User();
+        user.setName(name);
+        user.setPassword(password);
+        user.setRole(role);
+        user.setLastDeviceId(deviceId);
+        user.setEmail(email);
+        user.setPhoneNumber(phone);
+
+        UserSession.setUser(user);
+    }
+
+
 }
