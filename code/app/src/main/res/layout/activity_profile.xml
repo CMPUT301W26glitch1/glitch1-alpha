@@ -43,15 +43,26 @@
         android:layout_margin="16dp" />
 
     <Button
-        android:id="@+id/btnSave"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnDeleteProfile"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Delete Profile"
+        android:textColor="#FFFFFF"
+        app:backgroundTint="#D32F2F"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnSave"
+        app:layout_constraintHorizontal_chainStyle="packed" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
         android:text="Save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp" />
-
-
-
+        app:layout_constraintStart_toEndOf="@id/btnDeleteProfile" />
 </androidx.constraintlayout.widget.ConstraintLayout>
 
