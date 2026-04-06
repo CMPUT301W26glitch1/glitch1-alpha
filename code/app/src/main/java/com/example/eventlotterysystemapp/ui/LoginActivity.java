@@ -112,10 +112,10 @@ public class LoginActivity extends AppCompatActivity {
                                     "Admin",
                                     userDoc.getString("lastDeviceId")
                             );
+                            adminUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(adminUser);
-                            Intent intent = new Intent(this, AdminDashboardActivity.class);
-                            intent.putExtra("USER_EMAIL", email);
-                            startActivity(intent);
+                            startActivity(new Intent(this, AdminDashboardActivity.class));
+                            finish();
                             break;
 
                         case "Organizer":
@@ -126,8 +126,9 @@ public class LoginActivity extends AppCompatActivity {
                                     "Organizer",
                                     userDoc.getString("lastDeviceId")
                             );
+                            organizerUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(organizerUser);
-                            intent = new Intent(this, OrganizerMainActivity.class);
+                            Intent intent = new Intent(this, OrganizerMainActivity.class);
                             intent.putExtra("USER_EMAIL", email);
                             startActivity(intent);
                             finish();
@@ -141,8 +142,11 @@ public class LoginActivity extends AppCompatActivity {
                                     "Entrant",
                                     userDoc.getString("lastDeviceId")
                             );
+                            entrantUser.setNotificationsOptedOut(Boolean.TRUE.equals(userDoc.getBoolean("notificationsOptedOut")));
                             UserSession.setUser(entrantUser);
-                            startActivity(new Intent(this, EventListActivity.class));
+                            Intent entrantIntent = new Intent(this, EventListActivity.class);
+                            entrantIntent.putExtra("USER_EMAIL", email); // add this
+                            startActivity(entrantIntent);
                             finish();
                             break;
                         default:
