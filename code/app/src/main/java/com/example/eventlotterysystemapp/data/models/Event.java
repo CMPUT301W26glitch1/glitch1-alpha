@@ -1,10 +1,12 @@
 package com.example.eventlotterysystemapp.data.models;
 
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+@IgnoreExtraProperties
 
 /**
  * Event class to store information of an event
@@ -44,6 +46,10 @@ public class Event {
         this.maxParticipants = maxParticipants;
         this.privateEvent = isPrivate;
     }
+    public boolean isPrivateEvent()
+    {return privateEvent;}
+    public void setPrivateEvent(boolean privateEvent) {this.privateEvent=privateEvent;}
+
 
     // --- Standard Getters/Setters ---
     public String getName() { return name; }
@@ -76,6 +82,11 @@ public class Event {
     public LocalDateTime getDateTime() { return dateTime; }
     public void updateLocalDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
 
+
+    @PropertyName("id")
+    public String getFirebaseId() {return eventId;}
+    @PropertyName("id")
+    public void setFirebaseId(String id) {this.eventId=id;}
     @PropertyName("dateTime")
     public Date getDateTimeAsDate() {
         return (dateTime == null) ? null : Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());

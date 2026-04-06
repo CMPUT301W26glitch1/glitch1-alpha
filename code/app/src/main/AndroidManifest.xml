@@ -117,7 +117,9 @@
         <activity
             android:name=".ui.SettingsActivity"
             android:exported="false" />
-        <activity android:name=".ui.EventPreviewActivity" />
+        <activity android:name=".ui.EventHistoryActivity"
+            android:exported="false" />
+        <activity android:name=".ui.EntrantCommentActivity" />
 
     </application>
 

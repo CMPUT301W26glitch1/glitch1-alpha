@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.example.eventlotterysystemapp.ui.organizer.EventParticipantsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
