@@ -23,6 +23,7 @@ public class ProfileActivity extends AppCompatActivity {
     Button btnSave;
     User user;
     FirebaseFirestore db;
+
     Button btnDelete;
 
     @Override
@@ -30,6 +31,8 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         AccessibilityUtils.applyAccessibilityMode(this);
+        db = FirebaseFirestore.getInstance();
+        user = UserSession.getUser();
         btnDelete = findViewById(R.id.btnDeleteProfile);
 
         btnSave = findViewById(R.id.btnSave);
@@ -42,6 +45,11 @@ public class ProfileActivity extends AppCompatActivity {
         etName.setText(user.getName());
         etEmail.setText(user.getEmail());
         etPhone.setText(user.getPhoneNumber());
+        if (user != null) {
+            etName.setText(user.getName());
+            etEmail.setText(user.getEmail());
+            etPhone.setText(String.valueOf(user.getPhoneNumber()));
+        }
         btnDelete.setOnClickListener(v -> {
             // Always use a Dialog for deletion so it's not accidental!
             new androidx.appcompat.app.AlertDialog.Builder(this)
