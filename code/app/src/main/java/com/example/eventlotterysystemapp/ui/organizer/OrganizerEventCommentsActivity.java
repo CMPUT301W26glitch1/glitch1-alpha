@@ -29,6 +29,10 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
     private List<Comment> commentList;
     private String eventId;
 
+    private boolean isAdminView = false;
+    private String currentUserId;
+    private String currentUserName;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,11 +46,19 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
 
         commentList = new ArrayList<>();
         eventId = getIntent().getStringExtra("eventId");
+        isAdminView = getIntent().getBooleanExtra("isAdminView", false);
+        currentUserId = getIntent().getStringExtra("userId");
+        currentUserName = getIntent().getStringExtra("userName");
 
         if (eventId == null || eventId.isEmpty()) {
             Toast.makeText(this, "Event ID is missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
+        }
+
+        if (isAdminView) {
+            etCommentInput.setVisibility(View.GONE);
+            btnPostComment.setVisibility(View.GONE);
         }
 
         commentAdapter = new CommentAdapter(this, commentList, eventId);
@@ -77,8 +89,9 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
                 .document()
                 .getId();
 
-        String userId = "organizer123";
-        String userName = "Organizer";
+        String userId = (currentUserId != null && !currentUserId.isEmpty()) ? currentUserId : "unknown_user";
+        String userName = (currentUserName != null && !currentUserName.isEmpty()) ? currentUserName : "Organizer";
+
         long timestamp = System.currentTimeMillis();
 
         Comment comment = new Comment(commentId, text, userId, userName, timestamp);

@@ -8,17 +8,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
-import com.example.eventlotterysystemapp.data.models.Event;
 import com.example.eventlotterysystemapp.ui.organizer.EventParticipantsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
 import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
 import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
-import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 import java.util.List;
 
@@ -29,9 +29,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     private Context context;
     private List<Event> events;
 
+    // logged-in organizer info
+    private String currentUserId;
+    private String currentUserName;
+
     public EventAdapter(Context context, List<Event> events) {
         this.context = context;
         this.events = events;
+    }
+
+    public void setCurrentUserInfo(String userId, String userName) {
+        this.currentUserId = userId;
+        this.currentUserName = userName;
     }
 
     @NonNull
@@ -44,6 +53,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Event event = events.get(position);
+
         holder.eventName.setText(event.getName());
         holder.eventDesc.setText(event.getDescription());
 
@@ -57,30 +67,32 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             context.startActivity(intent);
         });
 
-        //Update Poster Button
+        // Update Poster Button
         holder.poster.setOnClickListener(v -> {
             Intent intent = new Intent(context, UpdatePosterActivity.class);
             intent.putExtra("EVENT_ID", event.getEventId());
             context.startActivity(intent);
         });
 
-        // Add listener for Participant button similarly...
+        // Participants Button
         holder.btnParticipants.setOnClickListener(v -> {
             Intent intent = new Intent(context, EventParticipantsActivity.class);
             intent.putExtra("EVENT_ID", event.getEventId());
             context.startActivity(intent);
         });
 
+        // Comments Button
         holder.btnComments.setOnClickListener(v -> {
             Intent intent = new Intent(context, OrganizerEventCommentsActivity.class);
             intent.putExtra("eventId", event.getEventId());
+            intent.putExtra("userId", currentUserId);
+            intent.putExtra("userName", currentUserName);
             context.startActivity(intent);
         });
 
         // Invite Button - only for private events
         if (event.isPrivate()) {
             holder.btnInvite.setVisibility(View.VISIBLE);
-            //holder.btnQR.setVisibility(View.GONE);
             holder.btnInvite.setOnClickListener(v -> {
                 Intent intent = new Intent(context, InviteEntrantActivity.class);
                 intent.putExtra("EVENT_ID", event.getEventId());
@@ -93,7 +105,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     }
 
     @Override
-    public int getItemCount() { return events.size(); }
+    public int getItemCount() {
+        return events.size();
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView eventName, eventDesc;

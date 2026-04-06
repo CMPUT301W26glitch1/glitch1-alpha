@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,26 +17,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-// AdminManageEventsActivity fetches all events from Firestore and displays
-// them in a scrollable list. Tapping an event opens its detail screen.
 public class AdminManageEventsActivity extends AppCompatActivity {
 
-    // RecyclerView is an efficient scrollable list component.
     private RecyclerView recyclerEvents;
-
-    // Firestore database instance
     private FirebaseFirestore db;
-
-    // in-memory list of Firestore documents representing events
     private List<QueryDocumentSnapshot> eventList = new ArrayList<>();
-
-    // the adapter to bridge the eventList data and the RecyclerView UI
     private EventAdapter adapter;
 
     @Override
@@ -43,7 +38,6 @@ public class AdminManageEventsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_events);
 
-        // set up toolbar with a back arrow that calls finish() to go back
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -63,15 +57,12 @@ public class AdminManageEventsActivity extends AppCompatActivity {
         loadEvents();
     }
 
-    // calling loadEvents() here ensures the list always reflects the current Firestore state.
     @Override
     protected void onResume() {
         super.onResume();
         loadEvents();
     }
 
-    // performs an asynchronous read of the entire events collection.
-    // on success clears the old list, repopulates it, and notifies the adapter to redraw.
     private void loadEvents() {
         db.collection("events")
                 .get()
@@ -86,10 +77,8 @@ public class AdminManageEventsActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error loading events: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    // adapter that tells the RecyclerView how to create and bind each row
     private class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
-        // creates a new view for each row using the item_event.xml layout
         @Override
         public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
@@ -97,46 +86,49 @@ public class AdminManageEventsActivity extends AppCompatActivity {
             return new EventViewHolder(view);
         }
 
-        // binds Firestore data into the TextViews for each row
         @Override
         public void onBindViewHolder(EventViewHolder holder, int position) {
-
             QueryDocumentSnapshot doc = eventList.get(position);
 
-            String name     = doc.getString("name");
+            String eventId = doc.getId();
+            String name = doc.getString("name");
             String location = doc.getString("location");
 
-            // dateTime is stored as a Firestore Timestamp, not a String
             java.util.Date dateTime = doc.getDate("dateTime");
             String dateStr = (dateTime != null)
-                    ? new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(dateTime)
+                    ? new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(dateTime)
                     : null;
 
             holder.tvName.setText(name != null ? name : "Unnamed Event");
 
-            // combine date and location into eventDesc
-            String dateLocation = (dateStr != null ? dateStr : "No date") + " | " + (location != null ? location : "No location");
+            String dateLocation = (dateStr != null ? dateStr : "No date")
+                    + " | " + (location != null ? location : "No location");
             holder.tvDateLocation.setText(dateLocation);
 
+            Glide.with(holder.itemView.getContext()).clear(holder.eventPoster);
             String posterUrl = doc.getString("posterUrl");
-            ImageView poster = (ImageView) holder.itemView.findViewById(R.id.eventPoster);
-            Glide.with(holder.itemView.getContext()).clear(poster); // clear any previous image first
             if (posterUrl != null && !posterUrl.isEmpty()) {
                 Glide.with(holder.itemView.getContext())
                         .load(posterUrl)
-                        .into(poster);
+                        .into(holder.eventPoster);
             } else {
-                poster.setImageResource(android.R.drawable.ic_menu_gallery);
+                holder.eventPoster.setImageResource(android.R.drawable.ic_menu_gallery);
             }
 
-            // tapping a row passes event data to AdminEventDetailActivity
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(AdminManageEventsActivity.this, AdminEventDetailActivity.class);
-                intent.putExtra("eventId", doc.getId());
+                intent.putExtra("eventId", eventId);
                 intent.putExtra("eventName", name);
                 intent.putExtra("eventLocation", location);
                 intent.putExtra("eventDescription", doc.getString("description"));
                 intent.putExtra("eventCategory", doc.getString("category"));
+                startActivity(intent);
+            });
+
+            holder.btnComments.setOnClickListener(v -> {
+                Intent intent = new Intent(AdminManageEventsActivity.this, OrganizerEventCommentsActivity.class);
+                intent.putExtra("eventId", eventId);
+                intent.putExtra("isAdminView", true);
                 startActivity(intent);
             });
         }
@@ -146,14 +138,17 @@ public class AdminManageEventsActivity extends AppCompatActivity {
             return eventList.size();
         }
 
-        // holds references to the TextViews in each item_event.xml row
         class EventViewHolder extends RecyclerView.ViewHolder {
             TextView tvName, tvDateLocation;
+            ImageView eventPoster;
+            Button btnComments;
 
             EventViewHolder(View itemView) {
                 super(itemView);
-                tvName        = itemView.findViewById(R.id.eventName);
+                tvName = itemView.findViewById(R.id.eventName);
                 tvDateLocation = itemView.findViewById(R.id.eventDesc);
+                eventPoster = itemView.findViewById(R.id.eventPoster);
+                btnComments = itemView.findViewById(R.id.btnComments);
             }
         }
     }
