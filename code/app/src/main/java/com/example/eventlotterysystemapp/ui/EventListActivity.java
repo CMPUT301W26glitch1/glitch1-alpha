@@ -93,6 +93,9 @@ public class EventListActivity extends AppCompatActivity {
                 } else if (item.getTitle().equals("Lottery Info")) {
                     startActivity(new Intent(EventListActivity.this, LotteryInfoActivity.class));
                     return true;
+                } else if (item.getTitle().equals("Settings")) {
+                startActivity(new Intent(EventListActivity.this, SettingsActivity.class));
+                return true;
                 } else if (item.getTitle().equals("Logout")) {
                     // 1. Create the Intent to go back to the Sign In page
                     // (Change 'SignInActivity.class' to the actual name of your login file!)
