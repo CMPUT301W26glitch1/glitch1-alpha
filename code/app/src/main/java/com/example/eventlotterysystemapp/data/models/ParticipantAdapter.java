@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.eventlotterysystemapp.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 import java.util.List;
 
 /**
@@ -94,6 +96,17 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
                         holder.name.setText("Error loading name");
                     }
                 });
+
+        if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
+            float nameSize = holder.name.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
+            holder.name.setTextSize(nameSize + 6);
+
+            float emailSize = holder.email.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
+            holder.email.setTextSize(emailSize + 4);
+
+            holder.btnCancel.setTextSize(25);
+            holder.btnCancel.setMinHeight(120);
+        }
     }
 
     @Override

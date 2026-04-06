@@ -25,6 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 /**
  * Screen for organizer to create an event.
  * Updated: Resolves Email to Randomized User ID before saving to Firestore.
@@ -53,6 +55,7 @@ public class CreateEventActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         organizerEmail = getIntent().getStringExtra("USER_EMAIL");
         eventController = new EventController(this);

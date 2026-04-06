@@ -22,6 +22,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 // AdminManageEventsActivity fetches all events from Firestore and displays
 // them in a scrollable list. Tapping an event opens its detail screen.
 public class AdminManageEventsActivity extends AppCompatActivity {
@@ -42,6 +44,7 @@ public class AdminManageEventsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage_events);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         // set up toolbar with a back arrow that calls finish() to go back
         Toolbar toolbar = findViewById(R.id.toolbar);

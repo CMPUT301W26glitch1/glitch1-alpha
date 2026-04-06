@@ -12,6 +12,8 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.eventlotterysystemapp.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 // AdminProfileDetailActivity displays the full details of a single user profile.
 // It allows the admin to permanently delete the profile from Firestore.
 public class AdminProfileDetailActivity extends AppCompatActivity {
@@ -26,6 +28,7 @@ public class AdminProfileDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_profile_detail);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         db = FirebaseFirestore.getInstance();
 
