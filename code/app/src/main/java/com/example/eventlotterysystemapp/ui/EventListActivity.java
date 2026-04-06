@@ -69,7 +69,7 @@ public class EventListActivity extends AppCompatActivity {
         filteredEvents = new ArrayList<>();
 
         // Pass 'this' as context for Glide/Layout inflation
-        adapter = new EntrantEventAdapter(this, filteredEvents);
+        adapter = new EntrantEventAdapter(this, filteredEvents, loggedInUserEmail);
         eventRecyclerView.setAdapter(adapter);
 
         // 3. Initialize Firebase and Start Listening

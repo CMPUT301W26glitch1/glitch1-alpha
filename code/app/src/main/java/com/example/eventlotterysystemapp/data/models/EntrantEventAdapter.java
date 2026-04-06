@@ -26,16 +26,11 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
     private FirebaseFirestore db;
     private String email;
 
-    public EntrantEventAdapter(Context context, List<Event> events) {
+    public EntrantEventAdapter(Context context, List<Event> events, String email) {
         this.context = context;
         this.events = events;
         this.db = FirebaseFirestore.getInstance();
-
-        if (getUser() != null) {
-            this.email = getUser().getEmail();
-        } else {
-            this.email = "";
-        }
+        this.email = (email != null) ? email.toLowerCase().trim() : "";
     }
 
     @NonNull
@@ -52,47 +47,83 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
 
         String eventId = event.getEventId();
 
-        if (email == null || email.isEmpty()) {
-            if (getUser() != null) email = getUser().getEmail();
+        holder.eventName.setText(event.getName());
+
+        if (event.getDateTimeAsDate() != null) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault());
+            holder.eventDate.setText("📅 " + sdf.format(event.getDateTimeAsDate()));
+        } else {
+            holder.eventDate.setText("📅 TBD");
         }
 
-        holder.eventName.setText(event.getName());
-        holder.eventDate.setText(event.getLocation());
+        db.collection("events")
+                .document(eventId)
+                .collection("participants")
+                .whereEqualTo("status", "waitlist")
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null || snapshot == null) return;
+
+                    int currentWaitlistSize = snapshot.size();
+                    int limit = event.getListLimit();
+
+                    // Logic for Unlimited size (Integer.MAX_VALUE or 0)
+                    String limitStr;
+                    if (limit == Integer.MAX_VALUE || limit <= 0) {
+                        limitStr = "\u221E"; // Infinity symbol (∞)
+                    } else {
+                        limitStr = String.valueOf(limit);
+                    }
+
+                    holder.eventCapacity.setText("👥 " + currentWaitlistSize + "/" + limitStr);
+
+                    // Button logic for full waitlist
+                    boolean isFull = (limit > 0 && limit != Integer.MAX_VALUE && currentWaitlistSize >= limit);
+
+                    if (isFull && "Join".equalsIgnoreCase(holder.btnJoin.getText().toString())) {
+                        holder.btnJoin.setEnabled(false);
+                        holder.btnJoin.setText("Full");
+                    } else {
+                        holder.btnJoin.setEnabled(true);
+                    }
+                });
 
         Glide.with(context)
                 .load(event.getPosterUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.eventPoster);
 
+        // --- Status & Button Logic ---
         if (email == null || email.isEmpty()) {
             holder.btnJoin.setEnabled(false);
             return;
-        } else {
-            holder.btnJoin.setEnabled(true);
         }
 
-        // Tracking current status for logic checks
         final String[] currentStatus = {"none"};
-
         DocumentReference userRef = db.collection("events")
                 .document(eventId)
                 .collection("participants")
                 .document(email);
 
         userRef.addSnapshotListener((snapshot, e) -> {
-            if (e != null) return;
+            if (e != null) {
+                android.util.Log.e("FIRESTORE_STATUS", "Listen failed.", e);
+                return;
+            }
 
             if (snapshot != null && snapshot.exists()) {
                 String status = snapshot.getString("status");
-                currentStatus[0] = (status != null) ? status : "none";
+                currentStatus[0] = (status == null || status.isEmpty()) ? "none" : status;
 
-                if ("cancelled".equalsIgnoreCase(status)) {
+                android.util.Log.d("FIRESTORE_STATUS", "Event: " + event.getName() + " | Status Found: " + currentStatus[0]);
+
+                if ("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) {
                     holder.btnJoin.setText("Join");
                 } else {
                     holder.btnJoin.setText("Leave");
                 }
             } else {
                 currentStatus[0] = "none";
+                android.util.Log.d("FIRESTORE_STATUS", "No document for " + event.getName() + ". Setting status to none.");
                 holder.btnJoin.setText("Join");
             }
         });
@@ -101,35 +132,33 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             String buttonText = holder.btnJoin.getText().toString();
             String status = currentStatus[0];
 
+            // Debug
+            android.util.Log.d("BUTTON_CLICK", "Button: " + buttonText + " | Status: " + status);
+
             if ("Join".equalsIgnoreCase(buttonText)) {
-                // Allowed to join if status is none, empty, or cancelled
                 if (status == null || status.isEmpty() || "none".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
 
                     Participant participant = new Participant(email, "waitlist");
 
-                    // Use .set() to either create or overwrite the existing "cancelled" entry
                     userRef.set(participant)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show();
                             })
                             .addOnFailureListener(err -> {
-                                Toast.makeText(context, "Error joining: " + err.getMessage(), Toast.LENGTH_SHORT).show();
+                                android.util.Log.e("FIRESTORE_ERROR", err.getMessage());
+                                Toast.makeText(context, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
                             });
                 } else {
-                    Toast.makeText(context, "You are already active (Status: " + status + ")", Toast.LENGTH_SHORT).show();
+                    // This handles cases where status might be "selected" or "enrolled"
+                    Toast.makeText(context, "Cannot join. Current status: " + status, Toast.LENGTH_SHORT).show();
                 }
 
             } else {
-                // "Leave" Logic
+                // LEAVE LOGIC
                 userRef.update("status", "cancelled")
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(context, "Status updated to cancelled.", Toast.LENGTH_SHORT).show();
-                        })
+                        .addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show())
                         .addOnFailureListener(err -> {
-                            // If update fails (doc doesn't exist), create a cancelled entry
-                            Participant cancelledParticipant = new Participant(email, "cancelled");
-                            userRef.set(cancelledParticipant)
-                                    .addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT));
+                            userRef.set(new Participant(email, "cancelled"));
                         });
             }
         });
@@ -139,7 +168,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
     public int getItemCount() { return events != null ? events.size() : 0; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView eventName, eventDate;
+        TextView eventName, eventDate, eventCapacity; // Add eventCapacity here
         ImageView eventPoster;
         Button btnJoin;
 
@@ -147,6 +176,7 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             super(itemView);
             eventName = itemView.findViewById(R.id.eventName);
             eventDate = itemView.findViewById(R.id.eventDate);
+            eventCapacity = itemView.findViewById(R.id.eventCapacity); // Link it here
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
         }
