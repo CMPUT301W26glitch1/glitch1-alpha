@@ -42,11 +42,13 @@
 
             <Button
                 android:id="@+id/btnDeclineInvite"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.AppCompat.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:text="Decline"
-                android:textColor="#B00020"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#D32F2F"
                 android:visibility="gone" />
 
             <Button

@@ -14,7 +14,10 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Notification;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.example.eventlotterysystemapp.data.models.Participant;
 
 public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNotificationAdapter.ViewHolder> {
@@ -48,7 +51,9 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
 
         // Determine if this is an "Actionable" notification
         String type = notification.getType();
-        boolean isActionable = "LOTTERY_WIN".equals(type) || "PRIVATE_INVITE".equals(type);
+        boolean isActionable = "LOTTERY_WIN".equals(type) ||
+                "PRIVATE_INVITE".equals(type) ||
+                "COORG_INVITE".equals(type);
 
         // Only show buttons if it's actionable AND hasn't been responded to yet
         if (isActionable && "pending".equals(notification.getStatus())) {
@@ -73,7 +78,27 @@ public class EntrantNotificationAdapter extends RecyclerView.Adapter<EntrantNoti
                 .addOnSuccessListener(aVoid -> {
                     String type = notification.getType();
 
-                    if ("PRIVATE_INVITE".equals(type)) {
+                    if ("COORG_INVITE".equals(type)) {
+                        if ("accepted".equals(action)) {
+                            // Create the participant with the specific "co-organizer" status
+                            Map<String, Object> participant = new HashMap<>();
+                            participant.put("email", notification.getRecipientEmail());
+                            participant.put("status", "co-organizer");
+
+                            db.collection("events").document(notification.getEventId())
+                                    .collection("participants").document(notification.getRecipientEmail())
+                                    .set(participant)
+                                    .addOnSuccessListener(unused -> {
+                                        Toast.makeText(context, "You are now a Co-Organizer!", Toast.LENGTH_SHORT).show();
+                                        notification.setStatus(action);
+                                        notifyItemChanged(position);
+                                    });
+                        } else {
+                            Toast.makeText(context, "Invitation declined", Toast.LENGTH_SHORT).show();
+                            notification.setStatus(action);
+                            notifyItemChanged(position);
+                        }
+                    } else if ("PRIVATE_INVITE".equals(type)) {
                         if ("accepted".equals(action)) {
                             Participant participant = new Participant(notification.getRecipientEmail(), "waitlist");
 

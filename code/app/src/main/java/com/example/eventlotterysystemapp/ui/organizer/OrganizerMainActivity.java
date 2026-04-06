@@ -98,7 +98,7 @@ public class OrganizerMainActivity extends AppCompatActivity {
                                             Event event = document.toObject(Event.class);
                                             event.setEventId(document.getId());
                                             eventList.add(event);
-                                            addTestParticipant(event.getEventId());
+                                            //addTestParticipant(event.getEventId());
                                         }
                                     }
                                     adapter.notifyDataSetChanged();

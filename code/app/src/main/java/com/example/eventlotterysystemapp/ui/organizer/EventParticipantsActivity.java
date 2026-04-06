@@ -54,6 +54,13 @@ public class EventParticipantsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        Button btnInviteCoorg = findViewById(R.id.btnInviteCoorg);
+        btnInviteCoorg.setOnClickListener(v -> {
+            Intent intent = new Intent(this, InviteCoorgActivity.class);
+            intent.putExtra("EVENT_ID", eventId);
+            startActivity(intent);
+        });
+
         btnExportCSV.setOnClickListener(v -> exportEnrolledCsv());
 
         ViewPager2 viewPager = findViewById(R.id.viewPager);
@@ -68,6 +75,7 @@ public class EventParticipantsActivity extends AppCompatActivity {
                 case 1: tab.setText("Selected"); break;
                 case 2: tab.setText("Cancelled"); break;
                 case 3: tab.setText("Enrolled"); break;
+                case 4: tab.setText("Co-Organizers"); break;
             }
         }).attach();
     }

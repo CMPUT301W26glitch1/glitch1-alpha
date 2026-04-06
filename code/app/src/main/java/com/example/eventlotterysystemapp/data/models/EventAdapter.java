@@ -15,6 +15,7 @@ import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.data.models.Event;
 import com.example.eventlotterysystemapp.ui.organizer.EventParticipantsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.InviteEntrantActivity;
+import com.example.eventlotterysystemapp.ui.organizer.OrganizerEventCommentsActivity;
 import com.example.eventlotterysystemapp.ui.organizer.QRCodeActivity;
 import com.example.eventlotterysystemapp.ui.organizer.UpdatePosterActivity;
 
@@ -69,6 +70,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             context.startActivity(intent);
         });
 
+        holder.btnComments.setOnClickListener(v -> {
+            Intent intent = new Intent(context, OrganizerEventCommentsActivity.class);
+            intent.putExtra("eventId", event.getEventId());
+            context.startActivity(intent);
+        });
+
         // Invite Button - only for private events
         if (event.isPrivate()) {
             holder.btnInvite.setVisibility(View.VISIBLE);
@@ -90,7 +97,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView eventName, eventDesc;
         ImageView poster;
-        Button btnQR, btnParticipants, btnInvite;
+        Button btnQR, btnParticipants, btnInvite, btnComments;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -100,6 +107,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             btnQR = itemView.findViewById(R.id.btnQR);
             btnParticipants = itemView.findViewById(R.id.btnParticipants);
             btnInvite = itemView.findViewById(R.id.btnInvite);
+            btnComments = itemView.findViewById(R.id.btnComments);
         }
     }
 }
