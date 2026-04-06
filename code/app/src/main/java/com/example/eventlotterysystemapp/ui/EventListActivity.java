@@ -82,12 +82,16 @@ public class EventListActivity extends AppCompatActivity {
         ivMainOptions.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(this, v);
             popup.getMenu().add("Refresh List"); // This will now trigger the listener update
+            popup.getMenu().add("Lottery Info");
             popup.getMenu().add("Settings");
             popup.getMenu().add("Logout");
 
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getTitle().equals("Refresh List")) {
                     startFirebaseListener(); // Re-triggering refresh
+                    return true;
+                } else if (item.getTitle().equals("Lottery Info")) {
+                    startActivity(new Intent(EventListActivity.this, LotteryInfoActivity.class));
                     return true;
                 } else if (item.getTitle().equals("Logout")) {
                     // 1. Create the Intent to go back to the Sign In page

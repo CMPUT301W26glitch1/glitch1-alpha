@@ -20,6 +20,7 @@ public class AdminProfileDetailActivity extends AppCompatActivity {
 
     // Firestore document ID of the profile being viewed, needed to target the correct document for deletion
     private String profileId;
+    private String profileEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,8 @@ public class AdminProfileDetailActivity extends AppCompatActivity {
         // retrieve data passed from AdminManageProfilesActivity
         profileId = getIntent().getStringExtra("profileId");
         String name  = getIntent().getStringExtra("profileName");
-        String email = getIntent().getStringExtra("profileEmail");
+        profileEmail = getIntent().getStringExtra("profileEmail");
+        String email = profileEmail;
         String role  = getIntent().getStringExtra("profileRole");
         String phone = getIntent().getStringExtra("profilePhone");
 
@@ -60,23 +62,43 @@ public class AdminProfileDetailActivity extends AppCompatActivity {
         // show a confirmation dialog before deleting to prevent accidental deletions
         btnDelete.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
-                .setTitle("Remove Profile")
-                .setMessage("Are you sure you want to remove \"" + name + "\"? This cannot be undone.")
-                .setPositiveButton("Remove", (dialog, which) -> deleteProfile())
-                .setNegativeButton("Cancel", null)
-                .show();
+                    .setTitle("Remove Profile")
+                    .setMessage("Are you sure you want to remove \"" + name + "\"? This cannot be undone.")
+                    .setPositiveButton("Remove", (dialog, which) -> deleteProfile())
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
     }
 
-    // deletes the user document from Firestore using the profileId
+    // deletes the user document and all related data (participant entries, notifications)
     private void deleteProfile() {
-        db.collection("users").document(profileId)
-            .delete()
-            .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Profile removed", Toast.LENGTH_SHORT).show();
-                finish();
-            })
-            .addOnFailureListener(e ->
-                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        // 1. Delete notifications sent to this user
+        db.collection("notifications")
+                .whereEqualTo("recipientEmail", profileEmail)
+                .get()
+                .addOnSuccessListener(notifSnap -> {
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : notifSnap.getDocuments()) {
+                        doc.getReference().delete();
+                    }
+
+                    // 2. Remove this user from all event participant subcollections
+                    db.collection("events").get().addOnSuccessListener(eventsSnap -> {
+                        for (com.google.firebase.firestore.DocumentSnapshot eventDoc : eventsSnap.getDocuments()) {
+                            eventDoc.getReference().collection("participants")
+                                    .document(profileEmail)
+                                    .delete();
+                        }
+
+                        // 3. Delete the user document itself
+                        db.collection("users").document(profileId)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(this, "Profile and related data removed", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    });
+                });
     }
 }
