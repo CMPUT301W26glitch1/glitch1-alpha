@@ -142,6 +142,7 @@ public class AdminManageEventsActivity extends AppCompatActivity {
                 intent.putExtra("eventCategory", doc.getString("category"));
                 startActivity(intent);
             });
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override

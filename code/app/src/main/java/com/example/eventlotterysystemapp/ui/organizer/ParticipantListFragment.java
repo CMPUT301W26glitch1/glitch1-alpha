@@ -89,6 +89,20 @@ public class ParticipantListFragment extends Fragment {
             fetchEventCapacity();
             lotteryBtn.setOnClickListener(v -> runLottery());
 
+            // Re-enable the lottery button whenever a participant cancels,
+            // so the organizer can draw again to fill the vacant spot.
+            FirebaseFirestore.getInstance().collection("events")
+                    .document(eventId).collection("participants")
+                    .whereEqualTo("status", "cancelled")
+                    .addSnapshotListener((snap, e) -> {
+                        if (e != null || !isAdded()) return;
+                        boolean hasCancelled = snap != null && snap.size() > 0;
+                        if (hasCancelled && !lotteryBtn.isEnabled()) {
+                            lotteryBtn.setEnabled(true);
+                            lotteryBtn.setText("Run Lottery Drawing");
+                        }
+                    });
+
         } else if ("cancelled".equals(status)) {
             // Show Draw Replacement button on the cancelled tab
             lotteryBtn.setVisibility(View.GONE);

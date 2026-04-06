@@ -120,6 +120,7 @@ public class AdminManageProfilesActivity extends AppCompatActivity {
                                 : null);
                 startActivity(intent);
             });
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override

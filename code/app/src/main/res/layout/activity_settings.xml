@@ -41,10 +41,65 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Notifications section - only visible for entrants -->
+        <LinearLayout
+            android:id="@+id/notificationsSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Notifications"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Opt out of notifications"
+                        android:textSize="16sp"
+                        android:textColor="#1A1A1A" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Stop receiving notifications from organizers and admins"
+                        android:textSize="13sp"
+                        android:textColor="#666666"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchOptOut"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Accessibility section - visible for all roles -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Notifications"
+            android:text="Accessibility"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="#1A1A1A"
@@ -67,31 +122,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Opt out of notifications"
+                    android:text="Accessibility Mode"
                     android:textSize="16sp"
                     android:textColor="#1A1A1A" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Stop receiving notifications from organizers and admins"
+                    android:text="Larger text and buttons for easier reading"
                     android:textSize="13sp"
                     android:textColor="#666666"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
             <Switch
-                android:id="@+id/switchOptOut"
+                android:id="@+id/switchAccessibility"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
-
-        <Switch
-            android:id="@+id/switchAccessibility"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-            android:text="Accessibility Mode" />
 
     </LinearLayout>
 </LinearLayout>

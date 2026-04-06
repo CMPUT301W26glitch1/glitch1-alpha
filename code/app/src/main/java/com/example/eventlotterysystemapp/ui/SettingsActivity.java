@@ -1,7 +1,9 @@
 package com.example.eventlotterysystemapp.ui;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -9,9 +11,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.data.models.User;
 import com.example.eventlotterysystemapp.data.models.UserSession;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -28,6 +30,17 @@ public class SettingsActivity extends AppCompatActivity {
         switchOptOut = findViewById(R.id.switchOptOut);
         switchAccessibility = findViewById(R.id.switchAccessibility);
 
+        // Hide notification opt-out for Organizer and Admin - entrants only
+        User currentUser = UserSession.getUser();
+        String role = (currentUser != null) ? currentUser.getRole() : "";
+        boolean isEntrant = "Entrant".equals(role);
+
+        // Hide the entire notifications section for non-entrants
+        LinearLayout notificationsSection = findViewById(R.id.notificationsSection);
+        if (notificationsSection != null) {
+            notificationsSection.setVisibility(isEntrant ? View.VISIBLE : View.GONE);
+        }
+
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> {
             setResult(RESULT_OK);
@@ -42,6 +55,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        // Load current accessibility setting for this account
         boolean accessibilityEnabled = AccessibilityUtils.isAccessibilityModeOn(this);
         switchAccessibility.setChecked(accessibilityEnabled);
 
@@ -52,28 +66,27 @@ public class SettingsActivity extends AppCompatActivity {
             recreate();
         });
 
-        // Look up the user's Firestore doc by email to get their doc ID and current preference
-        String email = UserSession.getUser().getEmail();
+        // Only load notification opt-out for entrants
+        if (isEntrant && currentUser != null) {
+            String email = currentUser.getEmail();
+            db.collection("users")
+                    .whereEqualTo("email", email)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        if (!querySnapshot.isEmpty()) {
+                            userDocId = querySnapshot.getDocuments().get(0).getId();
+                            Boolean optedOut = querySnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
+                            switchOptOut.setChecked(optedOut != null && optedOut);
 
-        db.collection("users")
-                .whereEqualTo("email", email)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        userDocId = querySnapshot.getDocuments().get(0).getId();
-                        Boolean optedOut = querySnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
-                        switchOptOut.setChecked(optedOut != null && optedOut);
-
-                        // Only set the listener AFTER loading the current value to avoid a false trigger
-                        switchOptOut.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                            saveOptOutPreference(isChecked);
-                        });
-                    } else {
-                        Toast.makeText(this, "Could not find user profile", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error loading settings", Toast.LENGTH_SHORT).show());
+                            switchOptOut.setOnCheckedChangeListener((buttonView, isChecked) ->
+                                    saveOptOutPreference(isChecked));
+                        } else {
+                            Toast.makeText(this, "Could not find user profile", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this, "Error loading settings", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void saveOptOutPreference(boolean optedOut) {
