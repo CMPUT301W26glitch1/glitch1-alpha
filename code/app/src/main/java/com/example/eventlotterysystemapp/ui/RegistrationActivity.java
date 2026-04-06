@@ -87,7 +87,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
         if (!userPhoneNumber.isEmpty()) {
             try {
-                user.setPhoneNumber(Integer.parseInt(userPhoneNumber));
+                user.setPhoneNumber(userPhoneNumber);
             } catch (NumberFormatException e) {
                 UiUtils.showNotification(this, "Error", "Invalid phone number");
                 return;
