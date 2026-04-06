@@ -108,6 +108,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 } else {
                     UserSession.setUser(user);
                     intent = new Intent(RegistrationActivity.this, EventListActivity.class);
+                    intent.putExtra("USER_EMAIL", userEmail);
                 }
 
                 startActivity(intent);

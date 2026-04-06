@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
@@ -51,6 +52,8 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
                     .setNegativeButton("No", null)
                     .show();
         });
+
+        holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
     }
 
     private void deleteComment(Comment comment, int position) {

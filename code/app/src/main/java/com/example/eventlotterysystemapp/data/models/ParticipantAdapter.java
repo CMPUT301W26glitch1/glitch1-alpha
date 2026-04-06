@@ -9,16 +9,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.eventlotterysystemapp.R;
-import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.example.eventlotterysystemapp.R;
 import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
 /**
  * Participant adapter used to display participants as a list in ParticipantListFragment.
- * Now handles context-aware button text for Selected and Enrolled tabs.
+ * Handles context-aware button text for Selected and Enrolled tabs.
  */
 public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.ViewHolder> {
     private List<Participant> participants;
@@ -42,15 +42,12 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Participant p = participants.get(position);
 
-        // Default text while loading
         holder.name.setText("Loading...");
         holder.email.setText(p.getEmail());
 
-        // --- CONTEXT-AWARE BUTTON LOGIC ---
         if (cancelBtn) {
             holder.btnCancel.setVisibility(View.VISIBLE);
 
-            // Update button text based on the specific participant status
             if ("enrolled".equals(p.getStatus())) {
                 holder.btnCancel.setText("Remove Enrolled");
             } else if ("selected".equals(p.getStatus())) {
@@ -69,21 +66,18 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
                             String msg = "enrolled".equals(p.getStatus()) ? "Participant removed" : "Invite cancelled";
                             Toast.makeText(holder.itemView.getContext(), msg, Toast.LENGTH_SHORT).show();
                         })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(holder.itemView.getContext(), "Operation failed", Toast.LENGTH_SHORT).show();
-                        });
+                        .addOnFailureListener(e ->
+                                Toast.makeText(holder.itemView.getContext(), "Operation failed", Toast.LENGTH_SHORT).show());
             });
         } else {
             holder.btnCancel.setVisibility(View.GONE);
         }
 
-        // Fetch user name from 'users' collection
         FirebaseFirestore.getInstance().collection("users")
                 .whereEqualTo("email", p.getEmail())
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (holder.getBindingAdapterPosition() != position) return;
-
                     if (!querySnapshot.isEmpty()) {
                         String name = querySnapshot.getDocuments().get(0).getString("name");
                         holder.name.setText(name != null ? name : "Unknown User");
@@ -97,16 +91,7 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
                     }
                 });
 
-        if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
-            float nameSize = holder.name.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
-            holder.name.setTextSize(nameSize + 6);
-
-            float emailSize = holder.email.getTextSize() / holder.itemView.getResources().getDisplayMetrics().scaledDensity;
-            holder.email.setTextSize(emailSize + 4);
-
-            holder.btnCancel.setTextSize(25);
-            holder.btnCancel.setMinHeight(120);
-        }
+        holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
     }
 
     @Override
@@ -117,6 +102,7 @@ public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantAdapter.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, email;
         Button btnCancel;
+
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.participantName);
