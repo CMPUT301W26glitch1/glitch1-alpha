@@ -15,6 +15,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class ProfileActivity extends AppCompatActivity {
     EditText etName, etEmail, etPhone;
     Button btnSave;
@@ -24,6 +26,7 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         btnSave = findViewById(R.id.btnSave);
         etName = findViewById(R.id.etName);

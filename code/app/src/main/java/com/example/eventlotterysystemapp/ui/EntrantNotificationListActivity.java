@@ -19,6 +19,8 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 /**
  * Screen for Entrants to view lottery results and private event invitations.
  * Fulfills US 01.04.01, 01.04.02, 01.05.06, and 01.05.07.
@@ -33,6 +35,7 @@ public class EntrantNotificationListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrant_notification_list);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         String userEmail = getIntent().getStringExtra("USER_EMAIL");
         db = FirebaseFirestore.getInstance();

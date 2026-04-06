@@ -18,6 +18,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 import java.util.List;
 
 public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapter.ViewHolder> {
@@ -154,6 +156,15 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                                 userRef.set(new Participant(email, "cancelled")));
             }
         });
+
+        if (AccessibilityUtils.isAccessibilityModeOn(holder.itemView.getContext())) {
+            holder.eventName.setTextSize(26);
+            holder.eventDate.setTextSize(16);
+            holder.eventCapacity.setTextSize(16);
+
+            holder.btnJoin.setTextSize(15);
+            holder.btnJoin.setMinHeight(65);
+        }
     }
 
     // Called by RecyclerView when a ViewHolder goes off screen - clean up listeners

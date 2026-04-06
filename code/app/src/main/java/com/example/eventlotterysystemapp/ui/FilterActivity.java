@@ -8,6 +8,8 @@ import android.widget.Spinner;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.eventlotterysystemapp.R;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class FilterActivity extends AppCompatActivity {
 
     private Spinner spinnerAvailability, spinnerInterests;
@@ -17,6 +19,7 @@ public class FilterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         spinnerAvailability = findViewById(R.id.spinnerAvailability);
         spinnerInterests = findViewById(R.id.spinnerInterests);

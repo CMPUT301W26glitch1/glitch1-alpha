@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.eventlotterysystemapp.ui.AccessibilityUtils;
+
 public class InviteCoorgActivity extends AppCompatActivity {
 
     private EditText searchCoorg;
@@ -35,6 +37,7 @@ public class InviteCoorgActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invite_coorg);
+        AccessibilityUtils.applyAccessibilityMode(this);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
 
