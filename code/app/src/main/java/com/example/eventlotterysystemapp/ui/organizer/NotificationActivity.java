@@ -117,25 +117,38 @@ public class NotificationActivity extends AppCompatActivity {
                         String email = doc.getId();
                         String userId = doc.getString("userId"); // Ensure your participants doc has this field!
 
-                        Map<String, Object> notification = new HashMap<>();
-                        notification.put("recipientEmail", email);
-                        notification.put("recipientId", userId); // Added: Essential for Entrant query
-                        notification.put("eventId", eventId);
-                        notification.put("eventName", eventName);
-                        notification.put("message", message);
+                        // Check if this user opted out of notifications
+                        db.collection("users")
+                                .whereEqualTo("email", email)
+                                .get()
+                                .addOnSuccessListener(userSnapshot -> {
+                                    if (!userSnapshot.isEmpty()) {
+                                        Boolean optedOut = userSnapshot.getDocuments().get(0).getBoolean("notificationsOptedOut");
+                                        if (optedOut != null && optedOut) {
+                                            return; // Skip this user - they opted out
+                                        }
+                                    }
 
-                        // 2. Map spinner choice to Actionable Types for the Entrant side
-                        String type = statusToMatch;
-                        if (statusToMatch.equals("selected")) {
-                            type = "LOTTERY_WIN"; // This triggers Accept/Decline buttons
-                        }
-                        notification.put("type", type);
+                                    // User has NOT opted out, so send the notification
+                                    Map<String, Object> notification = new HashMap<>();
+                                    notification.put("recipientEmail", email);
+                                    notification.put("recipientId", userId); // Added: Essential for Entrant query
+                                    notification.put("eventId", eventId);
+                                    notification.put("eventName", eventName);
+                                    notification.put("message", message);
 
-                        // 3. Set status to pending so buttons show up
-                        notification.put("status", "pending");
-                        notification.put("timestamp", com.google.firebase.Timestamp.now());
+                                    // 2. Map spinner choice to Actionable Types for the Entrant side
+                                    String type = statusToMatch;
+                                    if (statusToMatch.equals("selected")) {
+                                        type = "LOTTERY_WIN"; // This triggers Accept/Decline buttons
+                                    }
+                                    notification.put("type", type);
+                                    // 3. Set status to pending so buttons show up
+                                    notification.put("status", "pending");
+                                    notification.put("timestamp", com.google.firebase.Timestamp.now());
 
-                        db.collection("notifications").add(notification);
+                                    db.collection("notifications").add(notification);
+                                });
                     }
 
                     // ... keep your logging logic below ...
