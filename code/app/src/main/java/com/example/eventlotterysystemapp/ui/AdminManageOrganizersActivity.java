@@ -108,6 +108,7 @@ public class AdminManageOrganizersActivity extends AppCompatActivity {
 
             holder.btnDelete.setOnClickListener(v ->
                     deleteOrganizer(doc.getId()));
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override

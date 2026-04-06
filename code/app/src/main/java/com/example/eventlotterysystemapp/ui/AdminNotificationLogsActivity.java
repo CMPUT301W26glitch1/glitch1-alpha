@@ -97,6 +97,7 @@ public class AdminNotificationLogsActivity extends AppCompatActivity {
             holder.tvSentBy.setText("Sent By: " + (sentBy != null ? sentBy : "Unknown"));
             holder.tvSentTo.setText("Sent To: " + (sentTo != null ? sentTo : "Unknown"));
             holder.tvTimestamp.setText(timestamp != null ? timestamp : "No timestamp");
+            holder.itemView.post(() -> AccessibilityUtils.applyToItemView(holder.itemView.getContext(), holder.itemView));
         }
 
         @Override
