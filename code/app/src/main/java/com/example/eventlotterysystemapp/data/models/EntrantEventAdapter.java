@@ -1,7 +1,5 @@
 package com.example.eventlotterysystemapp.data.models;
 
-import static com.example.eventlotterysystemapp.data.models.UserSession.getUser;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +11,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.List;
 
@@ -45,6 +45,10 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
         Event event = events.get(position);
         if (event == null) return;
 
+        // Cancel any existing listeners from a previously bound event before attaching new ones.
+        // This is the core fix for the "joining one event joins others" bug.
+        holder.cancelListeners();
+
         String eventId = event.getEventId();
 
         holder.eventName.setText(event.getName());
@@ -56,7 +60,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
             holder.eventDate.setText("📅 TBD");
         }
 
-        db.collection("events")
+        // Listener 1: waitlist count and full/open status
+        ListenerRegistration capacityReg = db.collection("events")
                 .document(eventId)
                 .collection("participants")
                 .whereEqualTo("status", "waitlist")
@@ -66,33 +71,30 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                     int currentWaitlistSize = snapshot.size();
                     int limit = event.getListLimit();
 
-                    // Logic for Unlimited size (Integer.MAX_VALUE or 0)
                     String limitStr;
                     if (limit == Integer.MAX_VALUE || limit <= 0) {
-                        limitStr = "\u221E"; // Infinity symbol (∞)
+                        limitStr = "\u221E";
                     } else {
                         limitStr = String.valueOf(limit);
                     }
 
                     holder.eventCapacity.setText("👥 " + currentWaitlistSize + "/" + limitStr);
 
-                    // Button logic for full waitlist
                     boolean isFull = (limit > 0 && limit != Integer.MAX_VALUE && currentWaitlistSize >= limit);
-
                     if (isFull && "Join".equalsIgnoreCase(holder.btnJoin.getText().toString())) {
                         holder.btnJoin.setEnabled(false);
                         holder.btnJoin.setText("Full");
-                    } else {
+                    } else if (!isFull) {
                         holder.btnJoin.setEnabled(true);
                     }
                 });
+        holder.capacityListenerReg = capacityReg;
 
         Glide.with(context)
                 .load(event.getPosterUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.eventPoster);
 
-        // --- Status & Button Logic ---
         if (email == null || email.isEmpty()) {
             holder.btnJoin.setEnabled(false);
             return;
@@ -104,7 +106,8 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 .collection("participants")
                 .document(email);
 
-        userRef.addSnapshotListener((snapshot, e) -> {
+        // Listener 2: this user's join status for this specific event
+        ListenerRegistration statusReg = userRef.addSnapshotListener((snapshot, e) -> {
             if (e != null) {
                 android.util.Log.e("FIRESTORE_STATUS", "Listen failed.", e);
                 return;
@@ -114,8 +117,6 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 String status = snapshot.getString("status");
                 currentStatus[0] = (status == null || status.isEmpty()) ? "none" : status;
 
-                android.util.Log.d("FIRESTORE_STATUS", "Event: " + event.getName() + " | Status Found: " + currentStatus[0]);
-
                 if ("cancelled".equalsIgnoreCase(currentStatus[0]) || "none".equalsIgnoreCase(currentStatus[0])) {
                     holder.btnJoin.setText("Join");
                 } else {
@@ -123,62 +124,75 @@ public class EntrantEventAdapter extends RecyclerView.Adapter<EntrantEventAdapte
                 }
             } else {
                 currentStatus[0] = "none";
-                android.util.Log.d("FIRESTORE_STATUS", "No document for " + event.getName() + ". Setting status to none.");
                 holder.btnJoin.setText("Join");
             }
         });
+        holder.statusListenerReg = statusReg;
 
         holder.btnJoin.setOnClickListener(v -> {
             String buttonText = holder.btnJoin.getText().toString();
             String status = currentStatus[0];
 
-            // Debug
-            android.util.Log.d("BUTTON_CLICK", "Button: " + buttonText + " | Status: " + status);
-
             if ("Join".equalsIgnoreCase(buttonText)) {
                 if (status == null || status.isEmpty() || "none".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
-
                     Participant participant = new Participant(email, "waitlist");
-
                     userRef.set(participant)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show();
-                            })
+                            .addOnSuccessListener(aVoid ->
+                                    Toast.makeText(context, "Joined waitlist!", Toast.LENGTH_SHORT).show())
                             .addOnFailureListener(err -> {
                                 android.util.Log.e("FIRESTORE_ERROR", err.getMessage());
                                 Toast.makeText(context, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
                             });
                 } else {
-                    // This handles cases where status might be "selected" or "enrolled"
                     Toast.makeText(context, "Cannot join. Current status: " + status, Toast.LENGTH_SHORT).show();
                 }
-
             } else {
-                // LEAVE LOGIC
                 userRef.update("status", "cancelled")
-                        .addOnSuccessListener(aVoid -> Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show())
-                        .addOnFailureListener(err -> {
-                            userRef.set(new Participant(email, "cancelled"));
-                        });
+                        .addOnSuccessListener(aVoid ->
+                                Toast.makeText(context, "Left event.", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(err ->
+                                userRef.set(new Participant(email, "cancelled")));
             }
         });
+    }
+
+    // Called by RecyclerView when a ViewHolder goes off screen - clean up listeners
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.cancelListeners();
     }
 
     @Override
     public int getItemCount() { return events != null ? events.size() : 0; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView eventName, eventDate, eventCapacity; // Add eventCapacity here
+        TextView eventName, eventDate, eventCapacity;
         ImageView eventPoster;
         Button btnJoin;
+
+        // Store listener registrations so they can be cancelled on rebind/recycle
+        ListenerRegistration capacityListenerReg;
+        ListenerRegistration statusListenerReg;
 
         public ViewHolder(View itemView) {
             super(itemView);
             eventName = itemView.findViewById(R.id.eventName);
             eventDate = itemView.findViewById(R.id.eventDate);
-            eventCapacity = itemView.findViewById(R.id.eventCapacity); // Link it here
+            eventCapacity = itemView.findViewById(R.id.eventCapacity);
             eventPoster = itemView.findViewById(R.id.eventPoster);
             btnJoin = itemView.findViewById(R.id.btnJoin);
+        }
+
+        public void cancelListeners() {
+            if (capacityListenerReg != null) {
+                capacityListenerReg.remove();
+                capacityListenerReg = null;
+            }
+            if (statusListenerReg != null) {
+                statusListenerReg.remove();
+                statusListenerReg = null;
+            }
         }
     }
 }
