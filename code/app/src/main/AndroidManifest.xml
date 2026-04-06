@@ -121,8 +121,11 @@
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             android:exported="false" />
         <activity android:name=".ui.EntrantCommentActivity" />
-      
-        <activity android:name=".ui.EventPreviewActivity" />
+
+        <activity
+            android:name=".ui.EntrantEventDetailsActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:exported="false" />
 
     </application>
 

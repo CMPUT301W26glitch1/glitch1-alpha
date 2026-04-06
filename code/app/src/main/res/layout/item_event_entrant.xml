@@ -90,6 +90,18 @@
                 android:textSize="12sp" />
 
             <ImageButton
+                android:id="@+id/btnDetails"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentBottom="true"
+                android:layout_toStartOf="@id/btnComments"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_dialog_info"
+                app:tint="#1A237E"
+                android:contentDescription="View Details" />
+
+            <ImageButton
                 android:id="@+id/btnComments"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

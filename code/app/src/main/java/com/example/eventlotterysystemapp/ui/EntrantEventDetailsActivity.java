@@ -3,89 +3,188 @@ package com.example.eventlotterysystemapp.ui;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.data.models.Event;
+import com.example.eventlotterysystemapp.data.models.Participant;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.firebase.firestore.ListenerRegistration;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class EntrantEventDetailsActivity extends AppCompatActivity {
 
-    // Using the email from your login to match aarib's logic
-    private String userEmail = "test3@gmail.com";
+    private ImageView ivPoster;
+    private TextView tvName, tvDate, tvCapacity, tvDescription, tvStatus;
+    private TextView tvCategory, tvLocation, tvRegDates, tvGeoWarning; // New Views
+    private Button btnJoinLeave;
+
+    private FirebaseFirestore db;
+    private String eventId, userEmail;
+    private ListenerRegistration statusListener, capacityListener;
+    private boolean isFull = false;
+
+    // Formatter for LocalDateTime fields
+    private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy - h:mm a", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.entrantactivity_event_details);
 
-        TextView tvName = findViewById(R.id.tvDetailName);
-        TextView tvBadge = findViewById(R.id.tvJoinedBadge);
-        Button btnAction = findViewById(R.id.btnJoinLeave);
-        Button btnHome = findViewById(R.id.btnHomepage);
+        // Ensure you have this utility or remove if not used
+        // AccessibilityUtils.applyAccessibilityMode(this);
 
-        // 1. Get the data passed from the Adapter
-        String eventName = getIntent().getStringExtra("EVENT_NAME");
-        String eventId = getIntent().getStringExtra("EVENT_ID");
+        db = FirebaseFirestore.getInstance();
 
-        if (eventName != null) {
-            tvName.setText(eventName);
-        }
+        eventId = getIntent().getStringExtra("EVENT_ID");
+        userEmail = getIntent().getStringExtra("USER_EMAIL");
 
-        if (eventId == null) {
-            Toast.makeText(this, "Error: Could not load Event ID", Toast.LENGTH_SHORT).show();
+        if (eventId == null || userEmail == null) {
+            Toast.makeText(this, "Session expired or Event missing", Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        initViews();
+        loadEventData();
+        setupStatusListener();
+    }
 
-        // This is the specific path aarib showed in the screenshot
-        DocumentReference participantRef = db.collection("events")
-                .document(eventId)
+    private void initViews() {
+        ivPoster = findViewById(R.id.ivDetailedPoster);
+        tvName = findViewById(R.id.tvDetailedEventName);
+        tvDate = findViewById(R.id.tvDetailedEventDate);
+        tvCapacity = findViewById(R.id.tvDetailedCapacity);
+        tvDescription = findViewById(R.id.tvDetailedDescription);
+        tvStatus = findViewById(R.id.tvUserCurrentStatus);
+
+        // New view initializations
+        tvCategory = findViewById(R.id.tvDetailedCategory);
+        tvLocation = findViewById(R.id.tvDetailedLocation);
+        tvRegDates = findViewById(R.id.tvDetailedRegDates);
+        tvGeoWarning = findViewById(R.id.tvDetailedGeoWarning);
+
+        btnJoinLeave = findViewById(R.id.btnJoinLeaveDetailed);
+
+        btnJoinLeave.setOnClickListener(v -> handleJoinLeaveAction());
+        findViewById(R.id.fabBack).setOnClickListener(v -> finish());
+    }
+
+    private void loadEventData() {
+        db.collection("events").document(eventId).get().addOnSuccessListener(doc -> {
+            Event event = doc.toObject(Event.class);
+            if (event != null) {
+                event.setEventId(doc.getId());
+
+                // Basic Info
+                tvName.setText(event.getName());
+                tvDescription.setText(event.getDescription());
+                tvCategory.setText(event.getCategory());
+                tvLocation.setText("📍 " + event.getLocation());
+
+                // Event Date (using LocalDateTime)
+                if (event.getDateTime() != null) {
+                    tvDate.setText("📅 Event: " + event.getDateTime().format(dtFormatter));
+                }
+
+                // Registration Dates
+                String regStart = (event.getRegStart() != null) ? event.getRegStart().format(dtFormatter) : "N/A";
+                String regEnd = (event.getRegEnd() != null) ? event.getRegEnd().format(dtFormatter) : "N/A";
+                tvRegDates.setText("Registration: " + regStart + " to " + regEnd);
+
+                // Geolocation Warning
+                tvGeoWarning.setVisibility(event.isGeolocationReq() ? View.VISIBLE : View.GONE);
+
+                // Poster Image
+                Glide.with(this)
+                        .load(event.getPosterUrl())
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .into(ivPoster);
+
+                monitorCapacity(event.getListLimit());
+            }
+        });
+    }
+
+    private void setupStatusListener() {
+        DocumentReference pRef = db.collection("events").document(eventId)
+                .collection("participants").document(userEmail);
+
+        statusListener = pRef.addSnapshotListener((snapshot, e) -> {
+            if (e != null || snapshot == null) return;
+
+            if (snapshot.exists()) {
+                String status = snapshot.getString("status");
+                tvStatus.setText("Status: " + (status != null ? status.toUpperCase() : "NONE"));
+
+                // If they are on waitlist, selected, or even cancelled, button should let them "Leave" or "Re-join"
+                if ("waitlist".equalsIgnoreCase(status) || "selected".equalsIgnoreCase(status)) {
+                    btnJoinLeave.setText("Leave Event");
+                } else {
+                    btnJoinLeave.setText("Join Event");
+                }
+            } else {
+                tvStatus.setText("Status: NOT REGISTERED");
+                btnJoinLeave.setText("Join Event");
+            }
+            refreshButtonState();
+        });
+    }
+
+    private void monitorCapacity(int limit) {
+        capacityListener = db.collection("events").document(eventId)
                 .collection("participants")
-                .document(userEmail);
+                .whereEqualTo("status", "waitlist")
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null || snapshot == null) return;
 
-        // --- 2. THE PERSISTENCE CHECK (Fixes the Refresh Bug) ---
-        // We ask Firestore "Is this user already signed up?"
-        participantRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                // If the document exists, they are already on the waitlist
-                btnAction.setText("Leave");
-                tvBadge.setVisibility(View.VISIBLE);
-            } else {
-                // If not, show the Join button
-                btnAction.setText("Join");
-                tvBadge.setVisibility(View.GONE);
-            }
-        });
+                    int count = snapshot.size();
+                    // Using 0 as the "No Limit" indicator based on your Event class
+                    String limitStr = (limit <= 0) ? "No Limit" : String.valueOf(limit);
+                    tvCapacity.setText("👥 Waitlist: " + count + " / " + limitStr);
 
-        // --- 3. THE CLICK LOGIC (Saves to Database) ---
-        btnAction.setOnClickListener(v -> {
-            if (btnAction.getText().toString().equalsIgnoreCase("Join")) {
-                // JOINING: Create the map exactly like aarib's screenshot
-                Map<String, Object> testParticipant = new HashMap<>();
-                testParticipant.put("email", userEmail);
-                testParticipant.put("status", "waitlist");
-
-                participantRef.set(testParticipant).addOnSuccessListener(aVoid -> {
-                    btnAction.setText("Leave");
-                    tvBadge.setVisibility(View.VISIBLE);
-                    Toast.makeText(this, "Added to Waitlist!", Toast.LENGTH_SHORT).show();
+                    isFull = (limit > 0 && count >= limit);
+                    refreshButtonState();
                 });
-            } else {
-                // LEAVING: Delete the entry from the sub-collection
-                participantRef.delete().addOnSuccessListener(aVoid -> {
-                    btnAction.setText("Join");
-                    tvBadge.setVisibility(View.GONE);
-                    Toast.makeText(this, "Removed from Event", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
+    }
 
-        // Go back to the list
-        btnHome.setOnClickListener(v -> finish());
+    private void refreshButtonState() {
+        if ("Join Event".equals(btnJoinLeave.getText().toString()) && isFull) {
+            btnJoinLeave.setEnabled(false);
+            btnJoinLeave.setText("Waitlist Full");
+        } else {
+            btnJoinLeave.setEnabled(true);
+        }
+    }
+
+    private void handleJoinLeaveAction() {
+        DocumentReference pRef = db.collection("events").document(eventId)
+                .collection("participants").document(userEmail);
+
+        if ("Join Event".equals(btnJoinLeave.getText().toString())) {
+            Participant p = new Participant(userEmail, "waitlist");
+            pRef.set(p).addOnSuccessListener(aVoid ->
+                    Toast.makeText(this, "Joined waitlist!", Toast.LENGTH_SHORT).show());
+        } else {
+            // Standard behavior: allow user to remove themselves
+            pRef.delete().addOnSuccessListener(aVoid ->
+                    Toast.makeText(this, "Removed from event.", Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (statusListener != null) statusListener.remove();
+        if (capacityListener != null) capacityListener.remove();
     }
 }
