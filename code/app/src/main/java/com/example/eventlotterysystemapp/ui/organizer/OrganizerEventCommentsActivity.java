@@ -1,6 +1,7 @@
 package com.example.eventlotterysystemapp.ui.organizer;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -54,6 +55,10 @@ public class OrganizerEventCommentsActivity extends AppCompatActivity {
         btnPostComment.setOnClickListener(v -> postComment());
 
         loadComments();
+    }
+
+    public void goBackToMyEvents(View view) {
+        finish();
     }
 
     private void postComment() {
