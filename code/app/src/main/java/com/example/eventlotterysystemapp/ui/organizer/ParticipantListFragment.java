@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.eventlotterysystemapp.R;
+import com.example.eventlotterysystemapp.data.models.NotificationManager;
 import com.example.eventlotterysystemapp.data.models.Participant;
 import com.example.eventlotterysystemapp.data.models.ParticipantAdapter;
 import com.google.firebase.firestore.DocumentReference;
@@ -200,16 +201,21 @@ public class ParticipantListFragment extends Fragment {
         db.collection("events").document(eventId).get().addOnSuccessListener(eventDoc -> {
             if (!eventDoc.exists()) return;
 
+            String eventName = eventDoc.getString("name");
             Long maxParticipantsLong = eventDoc.getLong("maxParticipants");
             int totalCapacity = (maxParticipantsLong != null) ? maxParticipantsLong.intValue() : Integer.MAX_VALUE;
 
             db.collection("events").document(eventId).collection("participants")
-                    .whereIn("status", java.util.Arrays.asList("selected", "enrolled"))
                     .get()
-                    .addOnSuccessListener(querySnapshot -> {
-                        int currentOccupancy = querySnapshot.size();
-                        int spotsAvailable = totalCapacity - currentOccupancy;
+                    .addOnSuccessListener(allParticipants -> {
 
+                        int currentOccupancy = 0;
+                        for (QueryDocumentSnapshot doc : allParticipants) {
+                            String s = doc.getString("status");
+                            if ("selected".equals(s) || "enrolled".equals(s)) currentOccupancy++;
+                        }
+
+                        int spotsAvailable = totalCapacity - currentOccupancy;
                         if (spotsAvailable <= 0) {
                             Toast.makeText(getContext(), "Event is already full!", Toast.LENGTH_SHORT).show();
                             return;
@@ -218,22 +224,32 @@ public class ParticipantListFragment extends Fragment {
                         List<Participant> shuffledList = new ArrayList<>(participantList);
                         Collections.shuffle(shuffledList);
 
-                        int actualWinners = Math.min(spotsAvailable, shuffledList.size());
-
+                        int actualWinnersCount = Math.min(spotsAvailable, shuffledList.size());
                         WriteBatch batch = db.batch();
-                        for (int i = 0; i < actualWinners; i++) {
-                            Participant winner = shuffledList.get(i);
-                            DocumentReference ref = db.collection("events")
-                                    .document(eventId)
-                                    .collection("participants")
-                                    .document(winner.getEmail());
-                            batch.update(ref, "status", "selected");
+                        NotificationManager nm = new NotificationManager();
+
+                        for (int i = 0; i < shuffledList.size(); i++) {
+                            Participant p = shuffledList.get(i);
+                            DocumentReference pRef = db.collection("events")
+                                    .document(eventId).collection("participants").document(p.getEmail());
+
+                            if (i < actualWinnersCount) {
+                                batch.update(pRef, "status", "selected");
+                                nm.sendNotification(p.getEmail(), p.getEmail(),
+                                        "Congratulations! You won the lottery for " + eventName + ".", "LOTTERY_WIN", eventId);
+                            } else {
+                                nm.sendNotification(p.getEmail(), p.getEmail(),
+                                        "You were not selected for " + eventName + " this time, but you are still on the waitlist!",
+                                        "LOTTERY_LOSS", eventId);
+                            }
                         }
 
                         batch.commit().addOnSuccessListener(aVoid -> {
-                            Toast.makeText(getContext(), "Lottery picked " + actualWinners + " participants!", Toast.LENGTH_SHORT).show();
-                            lotteryBtn.setEnabled(false);
-                            lotteryBtn.setText("Lottery Completed");
+                            if (isAdded()) {
+                                Toast.makeText(getContext(), "Lottery complete!", Toast.LENGTH_SHORT).show();
+                                lotteryBtn.setEnabled(false);
+                                lotteryBtn.setText("Lottery Completed");
+                            }
                         });
                     });
         });
