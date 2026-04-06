@@ -113,8 +113,9 @@ public class LoginActivity extends AppCompatActivity {
                                     userDoc.getString("lastDeviceId")
                             );
                             UserSession.setUser(adminUser);
-                            startActivity(new Intent(this, AdminDashboardActivity.class));
-                            finish();
+                            Intent intent = new Intent(this, AdminDashboardActivity.class);
+                            intent.putExtra("USER_EMAIL", email);
+                            startActivity(intent);
                             break;
 
                         case "Organizer":
@@ -126,7 +127,7 @@ public class LoginActivity extends AppCompatActivity {
                                     userDoc.getString("lastDeviceId")
                             );
                             UserSession.setUser(organizerUser);
-                            Intent intent = new Intent(this, OrganizerMainActivity.class);
+                            intent = new Intent(this, OrganizerMainActivity.class);
                             intent.putExtra("USER_EMAIL", email);
                             startActivity(intent);
                             finish();

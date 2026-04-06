@@ -45,6 +45,7 @@ public class EventListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
+        boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
         loggedInUserEmail = getIntent().getStringExtra("USER_EMAIL");
         // 1. Initialize UI
         eventRecyclerView = findViewById(R.id.eventRecyclerView);
@@ -97,18 +98,18 @@ public class EventListActivity extends AppCompatActivity {
                 startActivity(new Intent(EventListActivity.this, SettingsActivity.class));
                 return true;
                 } else if (item.getTitle().equals("Logout")) {
-                    // 1. Create the Intent to go back to the Sign In page
-                    // (Change 'SignInActivity.class' to the actual name of your login file!)
-                    Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
-
-                    // 2. Clear the history so they can't "Back" into the app after logging out
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    startActivity(intent);
-
-                    // 3. Optional: Show a toast
-                    Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-                    finish();
+                    if (isAdmin) {
+                        // Return to Admin Dashboard
+                        finish();
+                        Toast.makeText(this, "Returning to Admin Panel", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Full Logout for regular entrants
+                        Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
                     return true;
                 }
                 return false;
